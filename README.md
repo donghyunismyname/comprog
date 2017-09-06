@@ -1,2 +1,2 @@
-My codes for algorithmic problems.
-Usually written in C++.
+My codes for algorithmic programming problems.
+Mostly written in C++.
