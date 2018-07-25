@@ -1,2 +1,1 @@
-My codes for algorithmic programming problems.
-Mostly written in C++.
+Nobel prize, life, marriage, money, law school, fruit truck, tommorow, and competitive programming. What is the meaning of all those?
