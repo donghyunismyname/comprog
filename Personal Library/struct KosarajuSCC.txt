@@ -1,0 +1,54 @@
+struct KosarajuSCC {
+	static const int ARRAYSIZE = 10003;
+
+	vector<int> adj[ARRAYSIZE];
+	vector<int> inv[ARRAYSIZE];
+	void addEdge(int u, int v) {
+		adj[u].push_back(v);
+		inv[v].push_back(u);
+	}
+	void clearGraph() {
+		for (int i=0; i<ARRAYSIZE; i++) adj[i].clear();
+		for (int i=0; i<ARRAYSIZE; i++) inv[i].clear();
+	}
+
+
+
+
+	bool visited[ARRAYSIZE];
+
+	vector<int> topSort;
+	void dfs1(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		for (int there : adj[here]) dfs1(there);
+		topSort.push_back(here);
+	}
+
+	int sccCounter;
+	int sccID[ARRAYSIZE];
+	vector<vector<int>> family;
+	void dfs2(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		sccID[here] = sccCounter;
+		family.back().push_back(here);
+		for (int there : inv[here]) dfs2(there);
+	}
+
+
+
+	void solve() {
+		topSort.clear();
+		memset(visited, 0, sizeof(visited));
+		for (int i=0; i<ARRAYSIZE; i++) dfs1(i);
+		reverse(topSort.begin(), topSort.end());
+
+		sccCounter = 0;
+		memset(visited, 0, sizeof(visited));
+		for (int v : topSort) if (!visited[v]) {
+			family.push_back(vector<int>());
+			dfs2(v), sccCounter++;
+		}
+	}
+};

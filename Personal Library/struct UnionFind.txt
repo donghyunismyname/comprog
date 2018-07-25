@@ -1,0 +1,27 @@
+struct UnionFind {
+	vector<int> parent;
+
+	UnionFind(int size) : parent(size, -1) {}
+
+	int find(int a) {
+		if (parent[a] < 0) return a;
+		return parent[a] = find(parent[a]);
+	}
+
+	// Returns false if a and b are already contained it the same set
+	bool merge(int a, int b) {
+		a = find(a); b = find(b);
+		if (a==b) return false;
+
+		// a should be the parent of b
+		if (parent[a] > parent[b]) swap(a, b);
+		parent[a] += parent[b];
+		parent[b] = a;
+
+		return true;
+	}
+
+	void clear() {
+		for (int &p : parent) p = -1;
+	}
+};

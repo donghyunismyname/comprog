@@ -1,0 +1,96 @@
+https://www.acmicpc.net/problem/12105
+
+
+
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+const int SZ = 10333;
+char pattern[SZ];
+char text[SZ];
+
+vector<int> pos;
+void kmp() {
+	static int f[SZ];
+	f[0] = 0;
+	for (int i=1, j=0; pattern[i]; ) {
+		if (pattern[j] == pattern[i])
+			f[i++] = ++j;
+		else if (j == 0)
+			f[i++] = 0;
+		else
+			j = f[j-1];
+	}
+
+
+	for (int i=0, j=0; text[i]; ) {
+		if (text[i] == pattern[j]) {
+			i++, j++;
+			if (pattern[j] == 0) {
+				pos.push_back(i - j);
+				j = f[j-1];
+			}
+		}
+		else if (j == 0) i++;
+		else j = f[j-1];
+	}
+}
+
+
+ll cnt[4][3][2][2];
+void solve() {
+	cnt[0][0][0][0] = 1;
+
+	for (int x : pos) {
+		int A = (x%2 == 0) + (x%4 == 0) + (x%8 == 0);
+		int B = (x%3 == 0) + (x%9 == 0);
+		int C = (x%5 == 0);
+		int D = (x%7 == 0);
+		
+		for (int a : {3, 2, 1, 0}) for (int b : {2, 1, 0}) for (int c : {1, 0}) for (int d : {1, 0}) {
+			int aa = min(a + A, 3);
+			int bb = min(b + B, 2);
+			int cc = min(c + C, 1);
+			int dd = min(d + D, 1);
+
+			cnt[aa][bb][cc][dd] += cnt[a][b][c][d];
+			cnt[aa][bb][cc][dd] %= MOD;
+		}
+	}
+
+}
+
+
+
+int main() {
+	scanf("%s", pattern);
+	scanf("%s", text);
+
+	kmp();
+	for (int &x : pos) x += 1;
+
+
+	solve();
+	printf("%lld\n", cnt[3][2][1][1]);
+
+
+	return 0;
+}

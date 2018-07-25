@@ -1,0 +1,159 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <stack>
+#include <queue>
+#include <deque>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+
+
+struct SuffixAutomaton {
+	static const int ARRAYSIZE = 200333 * 2;
+	static const int NUMBER_OF_CHARACTERS = 26;
+	int idx(char c) {
+		return c - 'a';
+	}
+
+	struct State {
+		int len, link;
+		int next[NUMBER_OF_CHARACTERS];
+	};
+
+	State st[ARRAYSIZE];
+	int size;
+	int last;
+
+	void init() {
+		memset(st, 0, sizeof(st));
+		st[0].len = 0;
+		st[0].link = -1;
+		last = 0;
+		size = 1;
+	}
+
+	void extend(char c) {
+		c = idx(c);
+		int cur = size++;
+		st[cur].len = st[last].len + 1;
+
+		int p = last; last = cur;
+		for (; p!=-1 && !st[p].next[c]; p=st[p].link)
+			st[p].next[c] = cur;
+
+		int q = (p == -1) ? -1 : st[p].next[c];
+
+		if (p == -1) st[cur].link = 0;
+		else if (st[p].len + 1 == st[q].len) st[cur].link = q;
+		else {
+			int clone = size++;
+			st[clone] = st[q];
+			st[clone].len = st[p].len + 1;
+			for (; p!=-1 && st[p].next[c]==q; p=st[p].link)
+				st[p].next[c] = clone;
+			st[q].link = st[cur].link = clone;
+		}
+	}
+
+	void constructAutomaton(const string &s) {
+		init();
+		for (char c : s) extend(c);
+	}
+
+
+	string lcs(const string &s1, const string &s2) {
+		constructAutomaton(s1);
+
+		int curState = 0;
+		int curLen = 0;
+		int bestLen = 0;
+		int bestPos = -1;
+
+		for (int i=0; i<s2.size();) {
+			if (st[curState].next[idx(s2[i])]) {
+				curState = st[curState].next[idx(s2[i++])];
+				curLen++;
+
+				if (bestLen < curLen) {
+					bestLen = curLen;
+					bestPos = i - bestLen;
+				}
+			}
+			else if (curState) {
+				curState = st[curState].link;
+				curLen = st[curState].len;
+			}
+			else i++;
+		}
+
+		return s2.substr(bestPos, bestLen);
+	}
+
+
+	bool doesContain(const string& container, const string &s) {
+		constructAutomaton(container);
+
+
+		int curState = 0;
+		for (char c : s) {
+			curState = st[curState].next[idx(c)];
+			if (curState == 0) return false;
+		}
+
+		return true;
+	}
+};
+
+
+
+
+
+
+
+
+SuffixAutomaton sa;
+
+
+int main() {
+	string s1; cin >> s1;
+	string s2; cin >> s2;
+	string s; cin >> s;
+
+	
+	bool cond1 = sa.lcs(s1, s2).size() == s.size();
+	bool cond2 = sa.doesContain(s1, s);
+	bool cond3 = sa.doesContain(s2, s);
+
+	const char* ans = cond1 && cond2 && cond3 ? "YES" : "NO";
+	cout << ans << endl;
+
+
+
+
+
+	
+	return 0;
+}

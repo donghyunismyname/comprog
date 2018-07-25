@@ -1,0 +1,168 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+
+
+
+struct MCMF {
+	// Successive Shortest Path Algorithm employing Bellman-Ford
+	// Cannot handle graph with negative cost cycle (capacitied or uncapacited)
+
+	static const int ARRAYSIZE = 1003;
+	struct Edge {
+		int tail, head, capacity, cost, flow;
+		Edge* reverse;
+		int residue() const { return capacity - flow; }
+		void push(int amt) {
+			flow += amt;
+			reverse->flow -= amt;
+		}
+
+		/*
+		void printEdgeInfo() {
+			printf("tail: %d \n", tail);
+			printf("head: %d \n", head);
+			printf("capacity: %d \n", capacity);
+			printf("cost: %d \n", cost);
+			printf("flow: %d \n", flow);
+			printf("residue(): %d \n", residue());
+			printf("\n");
+		}
+		*/
+	};
+
+
+
+	vector<Edge*> edges;
+	void clear() {
+		for (Edge* e : edges) delete e;
+		edges.clear();
+	}
+	~MCMF() {
+		clear();
+	}
+
+
+
+
+	void addEdge(int tail, int head, int capacity, int cost) {
+		Edge* uv = new Edge; edges.push_back(uv);
+		Edge* vu = new Edge; edges.push_back(vu);
+
+		uv->tail = tail;
+		uv->head = head;
+		uv->capacity = capacity;
+		uv->cost = cost;
+		uv->flow = 0;
+		uv->reverse = vu;
+
+		vu->tail = head;
+		vu->head = tail;
+		vu->capacity = 0;
+		vu->cost = -cost;
+		vu->flow = 0;
+		vu->reverse = uv;
+	}
+
+
+
+	int totalCost;
+	int totalFlow;
+	bool doBellmanFord(int src, int snk) {
+		static int dist[ARRAYSIZE];
+		static Edge* link[ARRAYSIZE];
+		static const int INF = 0x77777777;
+
+		memset(dist, INF, sizeof(dist));
+		dist[src] = 0;
+
+		for (int loopCnt=0;; loopCnt++) {
+			assert(loopCnt < ARRAYSIZE); // assert(No Negative Cycle)
+
+			bool changed = false;
+			for (Edge* e : edges) if (e->residue() && dist[e->tail] != INF) {
+				if (dist[e->head] > dist[e->tail] + e->cost) {
+					dist[e->head] = dist[e->tail] + e->cost;
+					link[e->head] = e;
+					changed = true;
+				}
+			}
+			if (changed == false) break;
+		}
+
+		if (dist[snk] == INF) return false;
+
+		int amount = INF;
+		for (int v=snk; v!=src; v=link[v]->tail) amount = min(amount, link[v]->residue());
+		for (int v=snk; v!=src; v=link[v]->tail) link[v]->push(amount);
+		for (int v=snk; v!=src; v=link[v]->tail) totalCost += link[v]->cost * amount;
+		totalFlow += amount;
+
+		return true;
+	}
+
+
+	void solve(int src, int snk) {
+		totalCost = totalFlow =  0;
+		while (doBellmanFord(src, snk));
+	}
+
+
+	/*
+	static void debug() {
+	MCMF mcmf;
+	mcmf.addEdge(0, 1, 20, 3);
+	mcmf.addEdge(1, 2, 10, 4);
+	mcmf.addEdge(2, 3, 30, 5);
+
+	mcmf.solve(0, 3);
+	printf("totalFlow %d \n", mcmf.totalFlow);
+	printf("totalCost %d \n", mcmf.totalCost);
+	}
+	*/
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int main() {
+
+	
+	
+
+
+
+	return 0;
+}

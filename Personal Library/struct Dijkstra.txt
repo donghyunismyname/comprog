@@ -1,0 +1,47 @@
+#include <queue>
+struct Dijkstra {
+	static const int ARRAYSIZE = 203;
+	struct Ver {
+		int v, cost;
+		bool operator<(const Ver &rhs) const {
+			return cost > rhs.cost;
+		}
+	};
+
+	vector<Ver> adj[ARRAYSIZE];
+	int dist[ARRAYSIZE];
+	//vector<Ver> backlink[ARRAYSIZE];
+
+	void addEdge(int u, int v, int weight) {
+		adj[u].push_back({ v, weight });
+	}
+	void clear() {
+		for (int i=0; i<ARRAYSIZE; i++)
+			adj[i].clear();
+	}
+
+	void solve(int src) {
+		priority_queue<Ver> pq;
+		memset(dist, 0x77, sizeof(dist));
+
+		dist[src] = 0;
+		pq.push({ src, 0 });
+		while (!pq.empty()) {
+			Ver here = pq.top(); pq.pop();
+			if (here.cost != dist[here.v]) continue;
+
+			for (Ver there : adj[here.v]) {
+				there.cost += here.cost;
+				if (there.cost < dist[there.v]) {
+					dist[there.v] = there.cost;
+					pq.push(there);
+
+					//backlink[there.v].clear();
+					//backlink[there.v].push_back({ here.v, there.cost - here.cost });
+				}
+				//else if (there.cost == dist[there.v])
+					//backlink[there.v].push_back({ here.v, there.cost - here.cost });
+			}
+		}
+	}
+} dij;

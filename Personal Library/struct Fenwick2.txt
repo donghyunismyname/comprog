@@ -1,0 +1,35 @@
+struct Fenwick2 {
+    static const int ARRAYSIZE = 4003;
+    int tree[ARRAYSIZE][ARRAYSIZE];
+    void init() {
+        memset(tree, 0, sizeof(tree));
+    }
+  
+    void update(int i, int j, int val) {
+        for (int iEnd=i+1; iEnd<ARRAYSIZE; iEnd+=iEnd&-iEnd)
+            for (int jEnd=j+1; jEnd<ARRAYSIZE; jEnd+=jEnd&-jEnd)
+                tree[iEnd][jEnd] += val;
+    }
+  
+    int query(int i, int j) {
+        const int iEnd = i+1;
+        const int jEnd = j+1;
+        int ret = 0;
+        for (int ie=iEnd; ie; ie&=ie-1)
+            for (int je=jEnd; je; je&=je-1)
+                ret += tree[ie][je];
+        return ret;
+    }
+  
+  
+    int rangeQuery(int i1, int i2, int j1, int j2) {
+        return query(i2, j2) - query(i1-1, j2) - query(i2, j1-1) + query(i1-1, j1-1);
+    }
+    void rangeUpdate(int i1, int i2, int j1, int j2, int val) {
+        update(i1, j1, val);
+        update(i1, j2+1, -val);
+        update(i2+1, j1, -val);
+        update(i2+1, j2+1, val);
+    }
+  
+};

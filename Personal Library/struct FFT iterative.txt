@@ -1,0 +1,126 @@
+https://www.acmicpc.net/problem/1067
+
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+#include <complex>
+const double PI = atan(1) * 4;
+struct FFT {
+	static int nextRevIndex(int N, int j) {
+		int b = N >> 1;
+		while (b && (j&b)) {
+			j ^= b;
+			b >>= 1;
+		}
+		return b ? j ^ b : 0;
+	}
+
+	static void dft(bool inv, vector<complex<double>> &y) {
+		int N = y.size();
+		for (int i=0, j=0; i<N; i++, j=nextRevIndex(N, j))
+			if (i < j) swap(y[i], y[j]);
+
+		for (int n=2; n<=N; n*=2) {
+			double ang = 2*PI / n * (inv ? -1 : 1);
+			complex<double> w1(cos(ang), sin(ang));
+
+			for (int i=0; i<N; i+=n) {
+				complex<double> w(1, 0);
+				for (int k=0; k<n/2; k++) {
+					complex<double> y0 = y[i+k];
+					complex<double> y1 = y[i+n/2+k];
+					y[i+k] = y0 + w*y1;
+					y[i+n/2+k] = y0 - w*y1;
+					w *= w1;
+				}
+			}
+		}
+
+		if (inv) 
+			for (int i=0; i<N; i++) y[i] /= N;
+	}
+
+
+	static void convolution(const vector<int> &a, const vector<int> &b, vector<int> &res) {
+		int N = 1;
+		while (N < max(a.size(), b.size())) N *= 2;
+		N *= 2;
+
+		vector<complex<double>> y(a.begin(), a.end()); 		
+		vector<complex<double>> yy(b.begin(), b.end()); 
+		y.resize(N); dft(false, y);
+		yy.resize(N); dft(false, yy);
+
+		for (int i=0; i<N; i++) y[i] *= yy[i];
+		dft(true, y);
+
+		res.resize(N);
+		for (int i=0; i<N; i++) {
+			double round = y[i].real() > 0 ? 0.5 : -0.5;
+			res[i] = int(y[i].real() + round);
+		}
+	}
+	static void cycleConvolution(const vector<int> &a, const vector<int> &b, vector<int> &res) {
+		assert(a.size() == b.size());
+		vector<int> aa(a.begin(), a.end());
+		aa.insert(aa.end(), a.begin(), a.end());
+
+		vector<int> rr;
+		convolution(aa, b, rr);
+
+		res.resize(a.size());
+		for (int i=0; i<(int)a.size(); i++)
+			res[i] = rr[a.size() + i];
+	}
+};
+
+
+
+
+
+
+int N;
+
+
+int main() {
+	scanf("%d", &N);
+
+	vector<int> a(N);
+	vector<int> b(N);
+
+	FOR(i, N) scanf("%d", &a[i]);
+	FOR(i, N) scanf("%d", &b[i]);
+
+
+
+	reverse(b.begin(), b.end());
+	vector<int> c;
+	FFT::cycleConvolution(a, b, c);
+
+	int ans = -123;
+	for (int x : c)
+		ans = max(ans, x);
+	cout << ans << endl;
+
+
+	return 0;
+}

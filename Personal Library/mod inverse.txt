@@ -1,0 +1,29 @@
+
+ll fac[200333];
+ll invfac[100333];
+
+ll calcInv(ll x) {
+	static const ll n = MOD - 2;
+	ll ret = 1;
+	for (int sh=35; sh>=0; sh--) {
+		ret *= ret, ret %= MOD;
+		if (n & (1LL<<sh))
+			ret *= x, ret %= MOD;
+	}
+	return ret;
+}
+
+void precalc() {
+	fac[0] = 1;
+	for (ll t=1; t<=200111; t++) fac[t] = t * fac[t-1] % MOD;
+	for (ll t=0; t<=100111; t++) invfac[t] = calcInv(fac[t]);
+}
+
+ll comb(int i, int j) {
+	ll ret = fac[i+j];
+	ret = ret * invfac[i] % MOD;
+	ret = ret * invfac[j] % MOD;
+	return ret;
+}
+
+

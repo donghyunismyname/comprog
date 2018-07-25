@@ -1,0 +1,9 @@
+const int MAX_N = 33; // 33Cr can be contained in int
+int comb[MAX_N+1][MAX_N+1];
+void precalcCombination() {
+	for (int n=0; n<=MAX_N; n++) {
+		comb[n][0] = 1;
+		for (int r=1; r<n; r++) comb[n][r] = comb[n-1][r-1] + comb[n-1][r];
+		comb[n][n] = 1;
+	}
+}

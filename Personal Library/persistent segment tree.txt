@@ -1,0 +1,117 @@
+// http://codeforces.com/contest/787/problem/E
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+const int SZ = 100333;
+int N;
+int a[SZ];
+
+// Persistent Segment Tree
+// The leftmost index: 1
+// The rightmost index: N
+struct Node {
+	int val = 0;
+	Node *l = NULL, *r = NULL;
+
+	static Node* buildWhole(int lo=1, int hi=N) {
+		Node *ret = new Node();
+		if (lo == hi) return ret;
+
+		int mi = (lo + hi) / 2;
+		ret->l = buildWhole(lo, mi);
+		ret->r = buildWhole(mi+1, hi);
+		return ret;
+	}
+
+	Node* buildUponThis(int idx, int val, int lo=1, int hi=N) {
+		if (idx < lo || hi < idx) return this;
+		Node *ret = new Node();
+		if (lo == hi) {
+			ret->val = val;
+			return ret;
+		}
+
+		int mi = (lo + hi) / 2;
+		ret->l = l->buildUponThis(idx, val, lo, mi);
+		ret->r = r->buildUponThis(idx, val, mi+1, hi);
+		ret->val = ret->l->val + ret->r->val;
+		return ret;
+	}
+
+
+	// Works under the assumption that all stored elements are nonnegative
+	// kthIndex(0) returns 1
+	// kthIndex(1) returns the leftmost positive index
+	// kthIndex(val) returns the rightmost positive index
+	// kthIndex(val+1) returns N+1
+	int kthIndex(int S, int lo=1, int hi=N) {
+		if (val < S) return N+1;
+		if (lo == hi) return lo;
+
+		int mi = (lo + hi) / 2;
+		if (S <= l->val)
+			return l->kthIndex(S, lo, mi);
+		else
+			return r->kthIndex(S-(l->val), mi+1, hi);
+	}
+};
+
+
+
+
+
+
+Node *tr[SZ];
+int closest[SZ];
+
+int main() {
+	scanf("%d", &N);
+	for (int i=1; i<=N; i++) scanf("%d", &a[i]);
+
+	Node *now = Node::buildWhole();
+	//puts("initial tree construction successful");
+
+	for (int i=N; i>=1; i--) {
+		if (closest[a[i]])
+			now = now->buildUponThis(closest[a[i]], 0);
+		now = now->buildUponThis(i, 1);
+
+		tr[i] = now;
+		closest[a[i]] = i;
+	}
+	//puts("tree construction successful");
+
+
+	for (int k=1; k<=N; k++) {
+		int lo = 1;
+		int ans = 0;
+		while (lo <= N) {
+			ans++;
+			lo = tr[lo]->kthIndex(k+1);
+		}
+
+		printf("%d ", ans);
+	}
+
+
+	return 0;
+}

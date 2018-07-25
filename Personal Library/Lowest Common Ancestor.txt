@@ -1,0 +1,131 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+ 
+//#define NDEBUG
+#include <cassert>
+ 
+#include <iostream>
+#include <cstdio>
+#include <algorithm> // min(), max(), sort(), lower_bound()
+#include <cstring> // memset(), memcpy()
+#include <functional> // greater<>()
+#include <vector>
+#include <map>
+#include <stack>
+#include <queue>
+ 
+using namespace std;
+ 
+#define GETINT(x) scanf("%d", &x)
+#define GETDBL(x) scanf("%lf", &x)
+#define GETSTR(s) scanf("%s", s)
+#define NEWINT(x) int x; scanf("%d", &x)
+#define NEWDBL(x) double x; scanf("%lf", &x)
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define NEWLN putchar('\n')
+ 
+typedef long long ll;
+ 
+const int INF = 987654321;
+//const int M = 1000000007;
+//const int M = 100711433;
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+struct Edge{
+    int to, cost;
+};
+ 
+ 
+int N;
+vector<Edge> adj[40003];
+int parent[40003][20];
+int depth[40003];
+int dist[40003];
+ 
+bool visited[40003];
+void dfs(int here, int dep, int dis) {
+    visited[here] = true;
+ 
+    depth[here] = dep;
+    dist[here] = dis;
+ 
+    for (Edge e : adj[here]) if (!visited[e.to]) {
+        parent[e.to][0] = here;
+        for (int i=0; parent[parent[e.to][i]][i]; i++)
+            parent[e.to][i+1] = parent[parent[e.to][i]][i];
+ 
+        dfs(e.to, dep+1, dis+e.cost);
+    }
+}
+ 
+ 
+int lca(int a, int b) {
+    if (depth[a] < depth[b]) swap(a, b);
+ 
+    int toClimb = depth[a] - depth[b];
+    for (int i=0; toClimb>>i; i++)
+        if ((toClimb>>i)&1)
+            a = parent[a][i];
+ 
+ 
+    /*
+    while (a != b) {
+        a = parent[a][0];
+        b = parent[b][0];
+    }
+    return a;
+    */
+ 
+     
+    if (a == b) return a;
+ 
+ 
+ 
+    int i = 0;
+    while (parent[a][i] != parent[b][i]) i++;
+ 
+    // Loop Invariant: a != b
+    // Loop invariant: parent[a][i] == parent[b][i]
+    while (i != 0) {
+        i--;
+        if (parent[a][i] != parent[b][i]) {
+            a = parent[a][i];
+            b = parent[b][i];
+        }
+    }
+ 
+    return parent[a][0];
+     
+}
+ 
+ 
+ 
+int main() {
+    GETINT(N);
+    FOR(zz, N-1) {
+        NEWINT(a); NEWINT(b); NEWINT(cost);
+        adj[a].push_back({ b, cost });
+        adj[b].push_back({ a, cost });
+    }
+    dfs(1, 0, 0);
+ 
+ 
+ 
+ 
+    NEWINT(Q);
+    FOR(zz, Q) {
+        NEWINT(a); NEWINT(b);
+        int ans = dist[a] + dist[b] - 2*dist[lca(a, b)];
+        printf("%d\n", ans);
+    }
+ 
+ 
+ 
+    return 0;
+}

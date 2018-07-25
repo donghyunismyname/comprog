@@ -1,0 +1,146 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+//#define NDEBUG
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define REP(i, LO, HI) for(int i=(LO); i<=(HI); i++)
+
+#define GETINT(x) scanf("%d", &x)
+#define GETDBL(x) scanf("%lf", &x)
+#define GETSTR(x) scanf("%s", x)
+#define NEWINT(x) int x; scanf("%d", &x)
+#define NEWDBL(x) double x; scanf("%lf", &x)
+#define NEWLN putchar('\n')
+
+typedef unsigned long long ll;
+
+//const int M = 1000000007;
+
+
+
+
+
+
+
+
+#include <queue>
+
+
+struct Trie {
+	static const int NUMBER_OF_CHARACTERS = 26;
+	static int idx(char c) { return c-'a'; }
+
+
+	Trie* children[NUMBER_OF_CHARACTERS] ={};
+	Trie* fail = NULL;
+	bool found = false;
+	
+
+	~Trie() {
+		for (Trie* &child : children)
+			if (child)
+				delete child;
+	}
+
+	void insert(const char* key) {
+		if (*key == 0) {
+			found = true;
+			return;
+		}
+		Trie* &child = children[idx(*key)];
+		if (child == NULL) child = new Trie;
+		child->insert(key+1);
+	}
+};
+
+
+
+
+
+void buildFailFunc(Trie* root) {
+	queue<Trie*> q;
+	q.push(root);
+
+	while (!q.empty()) {
+		Trie* here = q.front(); q.pop();
+
+		for (int c=0; c<26; c++) if (here->children[c]) {
+			Trie* there = here->children[c]; q.push(there);
+
+			Trie* t = here->fail;
+			while (t!=NULL && t->children[c]==NULL)
+				t = t->fail;
+
+			there->fail = t==NULL ? root : t->children[c];
+			there->found = there->found || there->fail->found;
+		}
+	}
+}
+
+
+
+
+
+
+
+bool ahoCorasick(const char* hay, Trie* root) {
+	Trie* state = root;
+	while (*hay) {
+		if (state->children[*hay - 'a']) 
+			state = state->children[*hay++ - 'a'];
+		else if (state->fail)
+			state = state->fail;
+		else 
+			hay++;
+
+		if (state->found) return true;
+	}
+
+	return false;
+}
+
+
+
+
+
+
+int main() {
+	Trie root;
+	NEWINT(N);
+	FOR(zz, N) {
+		char s[103]; GETSTR(s);
+		root.insert(s);
+	}
+	buildFailFunc(&root);
+
+	
+	//cout << &root << endl;
+	//cout << root.children[0]->fail << endl;
+
+
+
+	NEWINT(Q);
+	FOR(zz, Q) {
+		char hay[10003]; GETSTR(hay);
+		bool contain = ahoCorasick(hay, &root);
+		puts(contain ? "YES" : "NO");
+	}
+	
+	
+
+
+
+
+	return 0;
+}

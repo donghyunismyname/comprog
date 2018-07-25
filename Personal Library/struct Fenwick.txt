@@ -1,0 +1,45 @@
+
+// The index starts from 1
+// tree[0] is never used
+struct Fenwick {
+	static const int ARRAYSIZE = 100333;
+	int tree[ARRAYSIZE];
+
+	int sumTo(int hi) {
+		int ret = 0;
+		for (; hi; hi -= hi&-hi)
+			ret += tree[hi];
+		return ret;
+	}
+
+	void add(int idx, int val) { // Enters infinit loop on argument idx = 0
+		for (; idx<ARRAYSIZE; idx += idx&-idx)
+			tree[idx] += val;
+	}
+
+	int psum(int lo, int hi) {
+		return -sumTo(lo - 1) + sumTo(hi);
+	}
+
+	int sumFrom(int lo) {
+		return psum(lo, ARRAYSIZE - 1);
+	}
+
+	// findKth(1) is the leftmost element
+	int findKth(int k) {
+		int base = 0;
+		for (int sz = 1 << 16; sz; sz /= 2) {
+			if (base + sz < ARRAYSIZE && tree[base + sz] < k) { 
+				// tree[base + sz] should be the number of elements located left to the kth element
+				// Changing to tree[base + sz] <= k makes findKth(0) be the leftmost element
+				k -= tree[base + sz];
+				base = base + sz;
+			}
+		}
+		return base + 1;
+	}
+
+	void clear() {
+		memset(tree, 0, sizeof(tree));
+	}
+};

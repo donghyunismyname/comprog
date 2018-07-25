@@ -1,0 +1,46 @@
+#include <queue>
+struct Prim {
+	// Prim's Minimum Spanning Tree Algorithm
+	static const int SZ = 1003;
+	struct Edge {
+		int u, v, cost;
+		Edge(int uu, int vv, int cc) : u(uu), v(vv), cost(cc) {}
+		bool operator<(Edge rhs) const {
+			return cost > rhs.cost;
+		}
+	};
+
+	vector<Edge> adj[SZ];
+	int parent[SZ];
+
+	// Add an undirected edge
+	void addEdge(int u, int v, int cost) {
+		adj[u].push_back(Edge(u, v, cost));
+		adj[v].push_back(Edge(v, u, cost));
+	}
+
+	// Returns the minimun edge cost sum
+	int solve(int root, int numOfNodes) {
+		static bool added[SZ];
+		memset(added, 0, sizeof(added));
+		priority_queue<Edge> pq;
+		pq.push(Edge(root, root, 0));
+
+		int costSum = 0;
+		for (int k=0; k<numOfNodes; k++) {
+			Edge e = pq.top(); pq.pop();
+			if (added[e.v]) {
+				k--;
+				continue;
+			}
+			added[e.v] = true;
+			parent[e.v] = e.u;
+			costSum += e.cost;
+
+			for (Edge ee : adj[e.v]) if (!added[ee.v])
+				pq.push(ee);
+		}
+
+		return costSum;
+	}
+};

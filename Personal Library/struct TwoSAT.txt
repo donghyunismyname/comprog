@@ -1,0 +1,253 @@
+struct TwoSAT {
+	// not x corresponds to vertex x*2 + 0
+	//     x corresponds to vertex x*2 + 1
+
+	static const int ARRAYSIZE = 1000333 * 2;
+
+	vector<int> adj[ARRAYSIZE];
+	vector<int> inv[ARRAYSIZE];
+	void addEdge(int u, int v) {
+		adj[u].push_back(v);
+		inv[v].push_back(u);
+	}
+	void clearGraph() {
+		for (int i = 0; i < ARRAYSIZE; i++) adj[i].clear();
+		for (int i = 0; i < ARRAYSIZE; i++) inv[i].clear();
+	}
+
+
+
+	bool visited[ARRAYSIZE];
+
+	vector<int> topSort;
+	void dfs1(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		for (int there : adj[here]) dfs1(there);
+		topSort.push_back(here);
+	}
+
+	int sccCounter;
+	int sccID[ARRAYSIZE];
+	void dfs2(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		sccID[here] = sccCounter;
+		for (int there : inv[here]) dfs2(there);
+	}
+
+
+
+	int result[ARRAYSIZE / 2];
+	bool solve() {
+		topSort.clear();
+		memset(visited, 0, sizeof(visited));
+		for (int v = 0; v < ARRAYSIZE; v++) dfs1(v);
+		reverse(topSort.begin(), topSort.end());
+
+		sccCounter = 0;
+		memset(visited, 0, sizeof(visited));
+		for (int v : topSort) dfs2(v), sccCounter++;
+		
+
+		for (int x = 0; x < ARRAYSIZE / 2; x++) if (sccID[x * 2] == sccID[x * 2 + 1]) return false;
+
+		vector<pair<int, int> > vertices;
+		for (int v = 0; v < ARRAYSIZE; v++) vertices.push_back({ sccID[v], v });
+		sort(vertices.begin(), vertices.end());
+
+		memset(result, -1, sizeof(result));
+		for (pair<int, int> p : vertices) {
+			int x = p.second / 2;
+			int val = p.second & 1;
+			if (result[x] == -1) result[x] = !val;
+		}
+		return true;
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+//#define NDEBUG
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <queue>
+#include <deque>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define REP(i, LO, HI) for(int i=(LO); i<=(HI); i++)
+
+#define GETINT(x) scanf("%d", &x)
+#define GETDBL(x) scanf("%lf", &x)
+#define GETSTR(x) scanf("%s", x)
+#define NEWINT(x) int x; scanf("%d", &x)
+#define NEWDBL(x) double x; scanf("%lf", &x)
+#define NEWLN putchar('\n')
+
+typedef long long ll;
+
+const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+struct Interval {
+	int be, en;
+	bool disjoint(const Interval &rhs) const {
+		return en <= rhs.be || rhs.en <= be;
+	}
+};
+
+int N;
+Interval itvl[103][2];
+
+
+
+
+struct TwoSAT {
+	// not x corresponds to vertex x*2 + 0
+	//     x corresponds to vertex x*2 + 1
+
+	static const int ARRAYSIZE = 103 * 2;
+
+	vector<int> adj[ARRAYSIZE];
+	vector<int> inv[ARRAYSIZE];
+	void addEdge(int u, int v) {
+		adj[u].push_back(v);
+		inv[v].push_back(u);
+	}
+	void clearGraph() {
+		for (int i=0; i<ARRAYSIZE; i++) adj[i].clear();
+		for (int i=0; i<ARRAYSIZE; i++) inv[i].clear();
+	}
+
+
+
+	bool visited[ARRAYSIZE];
+
+	vector<int> topSort;
+	void dfs1(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		for (int there : adj[here]) dfs1(there);
+		topSort.push_back(here);
+	}
+
+	int sccCounter;
+	int sccID[ARRAYSIZE];
+	void dfs2(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		sccID[here] = sccCounter;
+		for (int there : inv[here]) dfs2(there);
+	}
+
+
+
+	int result[ARRAYSIZE/2];
+	bool solve() {
+		topSort.clear();
+		memset(visited, 0, sizeof(visited));
+		for (int v=0; v<2*N; v++) dfs1(v);
+		reverse(topSort.begin(), topSort.end());
+
+		sccCounter = 0;
+		memset(visited, 0, sizeof(visited));
+		for (int v : topSort) dfs2(v), sccCounter++;
+
+
+		for (int x=0; x<N; x++) if (sccID[x*2] == sccID[x*2+1]) return false;
+		
+		vector<pair<int, int> > vertices;
+		for (int i=0; i<2*N; i++) vertices.push_back({ sccID[i], i });
+		sort(vertices.begin(), vertices.end());
+
+		memset(result, -1, sizeof(result));
+		for (pair<int, int> p : vertices) {
+			int x = p.second/2;
+			int val = p.second&1;
+			if (result[x] == -1) result[x] = !val;
+		}
+		return true;
+	}
+};
+
+
+
+
+int main() {
+	int tc; cin >> tc;
+	while (tc--) {
+		TwoSAT sat;
+
+		cin >> N;
+		FOR(i, N) FOR(t, 2) cin >> itvl[i][t].be >> itvl[i][t].en;
+		
+		FOR(i, N) FOR(ii, 2) {
+			for (int j=i+1; j<N; j++) FOR(jj, 2) {
+				if (!itvl[i][ii].disjoint(itvl[j][jj])) {
+					sat.addEdge(i*2 + ii, j*2 + !jj);
+					sat.addEdge(j*2 + jj, i*2 + !ii);
+				}
+			}
+		}
+
+
+
+		if (sat.solve() == false) { puts("IMPOSSIBLE"); continue; }
+		puts("POSSIBLE");
+
+		FOR(i, N) {
+			int ii = sat.result[i];
+			cout << itvl[i][ii].be << " " << itvl[i][ii].en << endl;
+		}
+
+
+	}
+
+
+
+
+	return 0;
+}

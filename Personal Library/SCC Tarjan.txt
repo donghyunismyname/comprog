@@ -1,0 +1,93 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+//#define NDEBUG
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define REP(i, LO, HI) for(int i=(LO); i<=(HI); i++)
+
+typedef long long ll;
+
+//const int M = 1000000007;
+
+
+
+
+
+
+
+#include <stack>
+
+
+
+
+
+int V, E;
+vector<int> adj[10003];
+
+vector<vector<int>> sccFamily;
+stack<int> st;
+int visited[10003];
+int visitCount = 1;
+bool classified[10003];
+
+int scc(int here) {
+	int ret = visited[here] = visitCount++;
+	st.push(here);
+	
+	for (int there : adj[here]) {
+		if (visited[there] == 0)
+			ret = min(ret, scc(there));
+		else if (classified[there] == false)
+			ret = min(ret, visited[there]);
+	}
+
+	if (ret == visited[here]) {
+		sccFamily.push_back(vector<int>());
+		while (true) {
+			int v = st.top(); st.pop();
+			classified[v] = true;
+			sccFamily.back().push_back(v);
+			if (v == here) break;
+		}
+	}
+
+	return ret;
+}
+
+
+
+int main() {
+	cin >> V >> E;
+	FOR(zz, E) {
+		int a, b; cin >> a >> b;
+		adj[a].push_back(b);
+	}
+
+	REP(v, 1, V) if(visited[v] == 0) scc(v);
+
+
+
+	for (vector<int> &scc : sccFamily) sort(scc.begin(), scc.end());
+	sort(sccFamily.begin(), sccFamily.end());
+
+
+	cout << sccFamily.size() << endl;
+	for (vector<int> &scc : sccFamily) {
+		for (int v : scc) cout << v << " ";
+		cout << -1 << endl;
+	}
+
+	return 0;
+}

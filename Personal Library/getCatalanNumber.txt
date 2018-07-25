@@ -1,0 +1,39 @@
+
+const int SZ = 100333*2;
+const ll MOD = 1000000007;
+
+ll fac[SZ*2];
+ll inv[SZ];
+ll invfac[SZ];
+ll C[SZ];
+
+// n < SZ
+ll getBinom(int n, int r) {
+	return fac[n] * invfac[r] % MOD * invfac[n-r] % MOD;
+}
+
+// n < SZ-1
+ll getCatalanNumber(int n) {
+	return fac[2*n] * invfac[n] % MOD * invfac[n+1] % MOD;
+}
+
+void precalc() {
+	inv[1] = 1;
+	for (int x=2; x<SZ; x++) {
+		ll q = MOD / x;
+		ll r = MOD % x;
+
+		q = MOD - q;
+		inv[x] = q * inv[r] % MOD;
+	}
+
+	fac[0] = 1;
+	for (int x=1; x<2*SZ; x++) fac[x] = fac[x-1] * x % MOD;
+
+	invfac[0] = 1;
+	for (int x=1; x<SZ; x++) invfac[x] = invfac[x-1] * inv[x] % MOD;
+
+
+	for (int n=0; n+1<SZ; n++)
+		C[n] = getCatalanNumber(n);
+}

@@ -1,0 +1,74 @@
+struct MinVertexCover {
+	static const int ARRAYSIZE = 403;
+
+	vector<int> adj[ARRAYSIZE];
+
+	int aMatch[ARRAYSIZE];
+	int bMatch[ARRAYSIZE];
+
+	bool visited[ARRAYSIZE];
+	bool dfs(int here) {
+		if (visited[here]) return false;
+		visited[here] = true;
+
+		for (int there : adj[here]) {
+			if (bMatch[there] == -1 || dfs(bMatch[there])) {
+				aMatch[here] = there;
+				bMatch[there] = here;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+
+
+
+
+	void findMaxMatching() {
+		memset(aMatch, -1, sizeof(aMatch));
+		memset(bMatch, -1, sizeof(bMatch));
+
+		FOR(i, ARRAYSIZE) {
+			memset(visited, 0, sizeof(visited));
+			dfs(i);
+		}
+	}
+
+
+
+
+	bool aZ[ARRAYSIZE];
+	bool bZ[ARRAYSIZE];
+	// DFS along alternating paths
+	void markZ(int here) {
+		if (visited[here]) return;
+		visited[here] = true;
+		aZ[here] = true;
+
+		for (int there : adj[here]) {
+			bZ[there] = true;
+			if (bMatch[there] != -1) markZ(bMatch[there]);
+		}
+	}
+
+
+	vector<int> minVertexCover() {
+		findMaxMatching();
+
+		MEMSET(aZ, 0);
+		MEMSET(bZ, 0);
+		MEMSET(visited, 0);
+
+		FOR(i, ARRAYSIZE)
+			if (aMatch[i] == -1)
+				markZ(i);
+
+		vector<int> ret;
+		FOR(i, ARRAYSIZE) if (aZ[i] == false) ret.push_back(i);
+		FOR(i, ARRAYSIZE) if (bZ[i] == true) ret.push_back(i);
+		return ret;
+	}
+};

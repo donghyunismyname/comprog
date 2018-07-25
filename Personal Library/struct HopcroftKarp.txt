@@ -1,0 +1,54 @@
+
+#include <queue>
+
+struct HopcroftKarp {
+	static const int ARRAYSIZE = 10003; 
+	vector<int> adj[ARRAYSIZE];
+	void clear() {
+		for (int i=0; i<ARRAYSIZE; i++)
+			adj[i].clear();
+	}
+
+	int A[ARRAYSIZE], B[ARRAYSIZE];
+	int level[ARRAYSIZE];
+
+	void bfs() {
+		queue<int> q;
+		for (int v=0; v<ARRAYSIZE; v++) // level is 0 if unmatched
+			level[v] = A[v]==-1 ? 0 : -1;
+		for (int v=0; v<ARRAYSIZE; v++) if (level[v] == 0)
+			q.push(v);
+
+		while (!q.empty()) {
+			int a = q.front(); q.pop();
+			for (int b : adj[a]) if (B[b] != -1 && level[B[b]] == -1)
+				level[B[b]] = level[a] + 1,
+				q.push(B[b]);
+		}
+	}
+
+	bool dfs(int a) {
+		for (int b : adj[a]) {
+			if (B[b] == -1 || level[B[b]] == level[a] + 1 && dfs(B[b])) {
+				A[a] = b, B[b] = a;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	int solve() {
+		memset(A, -1, sizeof(A));
+		memset(B, -1, sizeof(B));
+		int totalMatch = 0;
+		while (true) {
+			bfs();
+			int match = 0;
+			for (int v=0; v<ARRAYSIZE; v++) if (A[v] == -1)
+				match += dfs(v);
+			if (match == 0) break;
+			totalMatch += match;
+		}
+		return totalMatch;
+	}
+}

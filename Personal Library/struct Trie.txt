@@ -1,0 +1,29 @@
+struct Trie {
+	static const int NUMBER_OF_CHARACTERS = 26;
+	static int idx(char c) { return c-'A'; }
+
+	Trie* children[NUMBER_OF_CHARACTERS];
+
+	Trie() {
+		memset(children, 0, sizeof(children));
+	}
+	~Trie() {
+		for (Trie* &child : children)
+			if (child)
+				delete child;
+	}
+
+	void insert(const char* key) {
+		if (*key == 0) return;
+		Trie* &child = children[idx(*key)];
+		if (child == NULL) child = new Trie;
+		child->insert(key+1);
+	}
+
+	Trie* find(const char* key) {
+		if (*key == 0) return this;
+		Trie* &child = children[idx(*key)];
+		if (child) return child->find(key+1);
+		else       return NULL;
+	}
+};

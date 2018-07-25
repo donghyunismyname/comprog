@@ -1,0 +1,96 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+
+typedef long long ll;
+const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+
+
+
+struct SegTree {
+	// Provides point update and range minimum query
+	// Implemented without recursion
+	static const int ARRAYSIZE = (1<<18) + 3;
+	int tree[ARRAYSIZE];
+	int base;
+
+	void init(int N) {
+		for (base=1; base<N; base<<=1);
+		MEMSET(tree, 0x88);
+	}
+
+	void init(const int *data, int N) {
+		for (base=1; base<N; base<<=1);
+		
+		for (int i=0; i<N; i++) tree[base+i] = data[i];
+		for (int i=N; i<base; i++) tree[base+i] = 2e9;
+		for (int v=base-1; v; v--)
+			tree[v] = min(tree[v*2], tree[v*2+1]);
+	}
+
+	void update(int idx, int val) {
+		int v = base + idx;
+		tree[v] = val;
+		for (v>>=1; v; v>>=1)
+			tree[v] = min(tree[v*2], tree[v*2+1]);
+	}
+
+	int query(int lo, int hi) {
+		int ret = 2e9;
+		lo += base;
+		hi += base;
+		while (lo < hi) {
+			if (lo%2 == 1) ret = min(ret, tree[lo++]);
+			if (hi%2 == 0) ret = min(ret, tree[hi--]);
+			lo >>= 1;
+			hi >>= 1;
+		}
+		if (lo == hi) ret = min(ret, tree[lo]);
+
+		return ret;
+	}
+};
+
+int N, Q;
+int dat[100333];
+SegTree sg;
+
+
+
+
+int main() {
+	scanf("%d%d", &N, &Q);
+	FOR(i, N) scanf("%d", &dat[i]);
+
+	sg.init(dat, N);
+
+	while (Q--) {
+		int lo, hi; scanf("%d%d", &lo, &hi);
+		lo--, hi--;
+
+		int ans = sg.query(lo, hi);
+		printf("%d\n", ans);
+	}
+
+
+	return 0;
+}

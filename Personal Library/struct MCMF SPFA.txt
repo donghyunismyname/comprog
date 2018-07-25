@@ -1,0 +1,104 @@
+#include <queue>
+
+struct MCMF {
+	// Successive Shortest Path Algorithm employing SPFA
+	// Cannot handle graph with negative cost cycle (capacitied or uncapacited)
+
+	static const int ARRAYSIZE = 1003;
+	struct Edge {
+		int tail, head, capacity, cost, flow;
+		Edge* reverse;
+		int residue() const { return capacity - flow; }
+		void push(int amt) {
+			flow += amt;
+			reverse->flow -= amt;
+		}
+	};
+
+
+	vector<Edge*> adj[ARRAYSIZE];
+	void clear() {
+		FOR(i, ARRAYSIZE) {
+			for (Edge* e : adj[i]) delete e;
+			adj[i].clear();
+		}
+	}
+	~MCMF() {
+		clear();
+	}
+
+
+
+
+	void addEdge(int tail, int head, int capacity, int cost) {
+		Edge* uv = new Edge; adj[tail].push_back(uv);
+		Edge* vu = new Edge; adj[head].push_back(vu);
+
+		uv->tail = tail;
+		uv->head = head;
+		uv->capacity = capacity;
+		uv->cost = cost;
+		uv->flow = 0;
+		uv->reverse = vu;
+
+		vu->tail = head;
+		vu->head = tail;
+		vu->capacity = 0;
+		vu->cost = -cost;
+		vu->flow = 0;
+		vu->reverse = uv;
+	}
+
+
+
+	int totalCost;
+	int totalFlow;
+	bool doSPFA(int src, int snk) {
+		static bool containedInQueue[ARRAYSIZE] ={};
+		static int dist[ARRAYSIZE];
+		static Edge* backLink[ARRAYSIZE];
+		static const int INF = 0x77777777;
+
+		memset(dist, INF, sizeof(dist));
+		queue<int> q;
+
+		dist[src] = 0;
+		containedInQueue[src] = true;
+		q.push(src);
+
+		int loopCnt = 0;
+		while (!q.empty()) {
+			assert(loopCnt++ < ARRAYSIZE*ARRAYSIZE);
+
+			int tail = q.front(); q.pop();
+			containedInQueue[tail] = false;
+
+			for (Edge* e : adj[tail]) if (e->residue()) {
+				if (dist[e->head] > dist[tail] + e->cost) {
+					dist[e->head] = dist[tail] + e->cost;
+					backLink[e->head] = e;
+					if (!containedInQueue[e->head]) {
+						containedInQueue[e->head] = true;
+						q.push(e->head);
+					}
+				}
+			}
+		}
+
+		if (dist[snk] == INF) return false;
+
+		int amount = INF;
+		for (int v=snk; v!=src; v=backLink[v]->tail) amount = min(amount, backLink[v]->residue());
+		for (int v=snk; v!=src; v=backLink[v]->tail) backLink[v]->push(amount);
+		for (int v=snk; v!=src; v=backLink[v]->tail) totalCost += backLink[v]->cost * amount;
+		totalFlow += amount;
+
+		return true;
+	}
+
+
+	void solve(int src, int snk) {
+		totalCost = totalFlow =  0;
+		while (doSPFA(src, snk));
+	}
+};

@@ -1,0 +1,102 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+ 
+//#define NDEBUG
+#include <cassert>
+ 
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <functional>
+#include <vector>
+ 
+ 
+using namespace std;
+ 
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define REP(i, LO, HI) for(int i=(LO); i<=(HI); i++)
+ 
+typedef long long ll;
+ 
+//const ll MOD = 1000000007;
+ 
+ 
+ 
+ 
+ 
+int N, M;
+vector<int> arr[20008];
+vector<int> arr2[20008];
+vector<int>* adj = arr + 10004;
+vector<int>* adjInv = arr2 + 10004;
+ 
+ 
+ 
+bool arr3[20008];
+bool* visited = arr3 + 10004;
+ 
+int arr4[20008];
+int* sccId = arr4 + 10004;
+int sccCounter = 1;
+ 
+ 
+vector<int> topSort;
+void dfs1(int here) {
+    if (visited[here]) return;
+    visited[here] = true;
+ 
+    for (int there : adj[here])
+        dfs1(there);
+    topSort.push_back(here);
+}
+ 
+void dfs2(int here) {
+    if (visited[here]) return;
+    visited[here] = true;
+    sccId[here] = sccCounter;
+ 
+    for (int there : adjInv[here])
+        dfs2(there);
+}
+ 
+ 
+ 
+int main() {
+    scanf("%d%d", &N, &M);
+    FOR(zz, N) {
+        int x, y; scanf("%d%d", &x, &y);
+        adj[-x].push_back(y);
+        adj[-y].push_back(x);
+ 
+        adjInv[y].push_back(-x);
+        adjInv[x].push_back(-y);
+    }
+ 
+ 
+    REP(v, -M, M) dfs1(v);
+ 
+ 
+    MEMSET(arr3, false);
+ 
+    reverse(topSort.begin(), topSort.end());
+    for (int v : topSort) {
+        dfs2(v);
+        sccCounter++;
+    }
+ 
+ 
+ 
+    //cout << sccId[1] << endl;
+    //cout << sccId[-1] << endl;
+ 
+ 
+    REP(i, 1, M) if (sccId[i] == sccId[-i]) {
+        puts("OTL");
+        exit(0);
+    }
+ 
+    puts("^_^");
+ 
+    return 0;
+}

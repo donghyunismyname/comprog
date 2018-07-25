@@ -1,0 +1,11 @@
+const ll MOD = 1000000007;
+
+ll powerMod(ll a, ll n) {
+	ll ans = 1;
+	for (int i=62; i>=0; i--) {
+		ans = ans * ans % MOD;
+		if ((n>>i)&1)
+			ans = ans * a % MOD;
+	}
+	return ans;
+}

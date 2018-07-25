@@ -1,0 +1,39 @@
+typedef long long ll;
+
+const int INF = 987654321;
+const int M = 1000000007;
+
+const int ARRAYSIZE = 100008;
+
+
+
+
+
+
+int calcPow(const int val, const int n) {
+	int ret = 1;
+
+	int sh = 0;
+	while (n>>sh) sh++;
+	for (sh--; sh>=0; sh--) {
+		ret = (ll)ret * ret % M;
+		if ((n>>sh) & 1) ret = (ll)ret * val % M;
+	}
+
+	return ret;
+}
+
+int factorial[ARRAYSIZE];
+void precalcFactorial() {
+	factorial[0] = 1;
+	for (int i=1; i<ARRAYSIZE; i++)
+		factorial[i] = (ll)i * factorial[i-1] % M;
+}
+
+// returns C(a+b, a) == C(a+b, b)
+int comb(int a, int b) {
+	return (ll)factorial[a+b] 
+		* calcPow(factorial[a], M-2) % M 
+		* calcPow(factorial[b], M-2) % M;
+}
+

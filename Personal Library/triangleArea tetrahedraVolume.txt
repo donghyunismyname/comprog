@@ -1,0 +1,26 @@
+double tetrahedronVolume(double U, double V, double W, double u, double v, double w) {
+	double X = (w-U+v)*(U+v+w);
+	double x = (U-v+w)*(v-w+U);
+	double Y = (u-V+w)*(V+w+u);
+	double y = (V-w+u)*(w-u+V);
+	double Z = (v-W+u)*(W+u+v);
+	double z = (W-u+v)*(u-v+W);
+
+	double a = sqrt(x*Y*Z);
+	double b = sqrt(y*Z*X);
+	double c = sqrt(z*X*Y);
+	double d = sqrt(x*y*z);
+
+	double ret = (-a+b+c+d) * (a-b+c+d) * (a+b-c+d) * (a+b+c-d);
+	ret = sqrt(ret);
+	ret = ret / (192*u*v*w);
+	
+	return ret;
+}
+
+
+
+double triangleArea(double a, double b, double c) {
+	double s = (a+b+c)/2;
+	return sqrt((s-a)*(s-b)*(s-c)*s);
+}

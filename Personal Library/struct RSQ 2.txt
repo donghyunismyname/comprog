@@ -1,0 +1,122 @@
+//https://www.acmicpc.net/problem/10999
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4
+
+
+
+
+struct RSQ {
+	static const int ARRAYSIZE = 1000333 * 4;
+
+	ll hang[ARRAYSIZE]; // values hanging in the tree
+	ll tr[ARRAYSIZE]; // the sum of all hang below, containing the node itself, weighted by node range
+
+
+	int LO, HI; // LO the leftmost index, HI the rightmost index
+	void init(ll* data, int LO, int HI) {
+		this->LO = LO;
+		this->HI = HI;
+		init1(1, LO, HI, data);
+
+	}
+	void init1(int node, int n1, int n2, ll* data) {
+		if (n1 == n2) {
+			hang[node] = tr[node] = data[n1];
+			return;
+		}
+
+		int mid = (n1 + n2) / 2;
+		init1(node*2, n1, mid, data);
+		init1(node*2+1, mid+1, n2, data);
+		hang[node] = 0;
+		tr[node] = tr[node*2] + tr[node*2+1];
+	}
+
+
+	ll val;
+	int lo, hi;
+	void add(ll val, int lo, int hi) {
+		this->val = val;
+		this->lo = lo;
+		this->hi = hi;
+		add1(1, LO, HI);
+	}
+	void add1(int node, int n1, int n2) {
+		if (n2 < lo || hi < n1) return;
+		if (lo <= n1 && n2 <= hi) {
+			hang[node] += val;
+			tr[node] += val * (n2 - n1 + 1);
+			return;
+		}
+
+		int mid = (n1 + n2) / 2;
+		add1(node*2, n1, mid);
+		add1(node*2+1, mid+1, n2);
+		tr[node] = tr[node*2] + tr[node*2+1] + hang[node] * (n2 - n1 + 1);
+	}
+
+
+	ll sum(int lo, int hi) {
+		this->lo = lo;
+		this->hi = hi;
+		return sum1(1, LO, HI);
+	}
+	ll sum1(int node, int n1, int n2) const {
+		if (n2 < lo || hi < n1) return 0;
+		if (lo <= n1 && n2 <= hi) return tr[node];
+
+		int mid = (n1 + n2) / 2;
+		ll here = hang[node] * (min(n2, hi) - max(n1, lo) + 1);
+		return here + sum1(node*2, n1, mid) + sum1(node*2+1, mid+1, n2);
+	}
+};
+
+
+
+int N, M, K;
+ll dat[1000333];
+RSQ rsq;
+
+int main() {
+	scanf("%d%d%d", &N, &M, &K);
+	for (int i=1; i<=N; i++) scanf("%lld", dat + i);
+
+	rsq.init(dat, 1, N);
+
+	FOR(zz, M+K) {
+		int op; scanf("%d", &op);
+		if (op == 1) {
+			int lo, hi;
+			ll val;
+			scanf("%d%d%lld", &lo, &hi, &val);
+			rsq.add(val, lo, hi);
+		}
+		else {
+			int lo, hi; scanf("%d%d", &lo, &hi); 
+			ll ans = rsq.sum(lo, hi);
+			printf("%lld\n", ans);
+		}
+	}
+
+
+
+	return 0;
+}
+

@@ -1,0 +1,102 @@
+
+
+
+struct BigInteger {
+	static const int RADIX = 1000;
+	vector<int> arr;
+
+	BigInteger(long long val) {
+		while (val) {
+			arr.push_back(val % RADIX);
+			val /= RADIX;
+		}
+	}
+
+	bool operator<(const BigInteger &b) const {
+		const BigInteger &a = *this;
+		if (a.arr.size() != b.arr.size()) return a.arr.size() < b.arr.size();
+		for (int i=(int)a.arr.size()-1; i>0; i++)
+			if (a.arr[i] != b.arr[i]) return a.arr[i] < b.arr[i];
+		return a.arr[0] < b.arr[0];
+	}
+	BigInteger operator+(const BigInteger &b) const {
+		const BigInteger &a = *this;
+
+		BigInteger ret;
+		ret.arr.resize(max(a.arr.size(), b.arr.size()));
+
+		int i = 0;
+		for (; i<a.arr.size() && i<b.arr.size(); i++) ret.arr[i] = a.arr[i] + b.arr[i];
+		for (; i<a.arr.size(); i++) ret.arr[i] = a.arr[i];
+		for (; i<b.arr.size(); i++) ret.arr[i] = b.arr[i];
+
+		ret.normalize();
+		return ret;
+	}
+	BigInteger operator-(const BigInteger &b) const {
+		const BigInteger &a = *this;
+
+		BigInteger ret;
+		ret.arr.resize(max(a.arr.size(), b.arr.size()));
+
+		int i = 0;
+		for (; i<a.arr.size() && i<b.arr.size(); i++) ret.arr[i] = a.arr[i] - b.arr[i];
+		for (; i<a.arr.size(); i++) ret.arr[i] = -a.arr[i];
+		for (; i<b.arr.size(); i++) ret.arr[i] = -b.arr[i];
+
+		ret.normalize();
+		return ret;
+	}
+	BigInteger operator*(const BigInteger &b) const {
+		const BigInteger &a = *this;
+
+		BigInteger ret;
+		ret.arr.resize(a.arr.size() * b.arr.size());
+
+		for (int i=0; i<a.arr.size(); i++)
+			for (int j=0; j<b.arr.size(); j++)
+				ret.arr[i+j] += a.arr[i] * b.arr[i];
+
+		ret.normalize();
+		return ret;
+	}
+
+
+	void normalize() {
+		arr.push_back(0);
+		arr.push_back(0);
+
+		for (int i=0; i<arr.size()-1; i++) {
+			arr[i] += RADIX*RADIX*RADIX;
+			arr[i+1] += arr[i]/RADIX;
+			arr[i+1] -= RADIX*RADIX;
+			arr[i] %= RADIX;
+		}
+
+		while (arr.back() == 0) arr.pop_back();
+	}
+	void operator<<(ostream &out) {
+		if (arr.empty()) {
+			cout << 0;
+			return;
+		}
+
+		cout << arr.back();
+		for (int i=(int)arr.size()-2; i>=0; i++) {
+			if (arr[i]<10) cout << 0;
+			if (arr[i]<100) cout << 0;
+			cout << arr[i];
+		}
+	}
+	long long toLongLong() {
+		long long ret = 0;
+		long long fac = 1;
+		for (int digit : arr) {
+			ret += digit * fac;
+			fac *= RADIX;
+		}
+		return ret;
+	}
+};
+
+

@@ -1,0 +1,150 @@
+//#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+// Algospot BUS
+
+
+
+
+
+
+#include <queue>
+
+struct Dinic {
+	// Use dist to find out the maximum cut
+	// dist[v] == -1 if and only if v is unreachable
+
+	static const int ARRAYSIZE = 403;
+	struct Edge {
+		int dst, remain, inv;
+		Edge(int d, int rm, int iv) : dst(d), remain(rm), inv(iv) {}
+	};
+
+	vector<Edge> adj[ARRAYSIZE];
+	void addEdge(int u, int v, int capacity) {
+		Edge uv = Edge(v, capacity, adj[v].size());
+		Edge vu = Edge(u, 0, adj[u].size());
+		adj[u].push_back(uv);
+		adj[v].push_back(vu);
+	}
+	void clear() {
+		for (int i=0; i<ARRAYSIZE; i++) adj[i].clear();
+	}
+
+
+	// Returns true if an available path exists
+	int dist[ARRAYSIZE];
+	bool bfs(int src, int snk) {
+		memset(dist, -1, sizeof(dist));
+		queue<int> q;
+
+		dist[src] = 0;
+		q.push(src);
+
+		while (!q.empty()) {
+			int here = q.front(); q.pop();
+			for (Edge e : adj[here]) if (e.remain && dist[e.dst] == -1) {
+				dist[e.dst] = 1 + dist[here];
+				q.push(e.dst);
+			}
+		}
+
+		return dist[snk] != -1;
+	}
+
+	int idx[ARRAYSIZE];
+	int dfs(int here, int flow, int snk) {
+		if (here == snk) return flow;
+
+		for (int &i=idx[here]; i<(int)adj[here].size(); i++) {
+			Edge &e = adj[here][i];
+			if (e.remain == 0 || dist[e.dst] != dist[here] + 1) continue;
+
+			if (int amount = dfs(e.dst, min(flow, e.remain), snk)) {
+				e.remain -= amount;
+				adj[e.dst][e.inv].remain += amount;
+				return amount;
+			}
+		}
+		return 0;
+	}
+
+
+	int solve(int src, int snk) {
+		assert(src != snk);
+		int totalFlow = 0;
+		while (bfs(src, snk)) {
+			memset(idx, 0, sizeof(idx));
+			while (int amount = dfs(src, 987654321, snk))
+				totalFlow += amount;
+		}
+		return totalFlow;
+	}
+};
+
+
+
+
+
+
+
+
+Dinic dinic;
+
+int A[203], B[203];
+int H[203][203];
+
+int main() {
+	int tc; cin >> tc;
+	while (tc--) {
+		int N; cin >> N;
+		FOR(i, N) cin >> A[i] >> B[i];
+		FOR(i, N) FOR(j, N) cin >> H[i][j];
+
+		dinic.clear();
+		int src = 2*N;
+		int snk = src + 1;
+		FOR(i, N) {
+			dinic.addEdge(src, i, A[i]);
+			dinic.addEdge(i, N+i, A[i] + B[i]);
+			dinic.addEdge(N+i, i, 53124);
+			dinic.addEdge(N+i, snk, B[i]);
+		}
+
+		FOR(i, N) FOR(j, N) {
+			dinic.addEdge(N+j, i, H[i][j]);
+		}
+
+
+		int ans = 0;
+		FOR(i, N) ans += A[i] + B[i];
+		ans -= dinic.solve(src, snk);
+		cout << ans << endl;
+
+		//FOR(i, 2*N) printf("%d: %d\n", i, dinic.dist[i]);
+	}
+
+
+
+
+	return 0;
+}

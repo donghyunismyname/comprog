@@ -1,0 +1,38 @@
+struct BipartiteMatching {
+	static const int ARRAYSIZE = 303;
+	vector<int> adj[ARRAYSIZE];
+	int backMatch[ARRAYSIZE];
+
+	//set<int> del;
+	bool visited[ARRAYSIZE];
+	bool dfs(int here) {
+		//if (del.find(here) != del.end()) return false;
+		if (visited[here]) return false;
+		visited[here] = true;
+
+		for (int there : adj[here]) {
+			//if (del.find(there) != del.end()) continue;
+			if (backMatch[there] == -1 || dfs(backMatch[there])) {
+				backMatch[there] = here;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	int solve() {
+		memset(backMatch, -1, sizeof(backMatch));
+
+		int matchCnt = 0;
+		for (int i = 0; i<ARRAYSIZE; i++) {
+			memset(visited, 0, sizeof(visited));
+			matchCnt += dfs(i);
+		}
+		return matchCnt;
+	}
+
+	void clear() {
+		for (int i = 0; i < ARRAYSIZE; i++)
+			adj[i].clear();
+	}
+} bm;

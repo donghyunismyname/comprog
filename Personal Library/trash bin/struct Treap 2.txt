@@ -1,0 +1,115 @@
+
+
+
+
+
+struct Treap {
+	int key;
+	int priority = rand();
+	Treap *left = NULL;
+	Treap *right = NULL;
+	int size = 1;
+	Treap(int givenKey) : key(givenKey) {}
+	void setLeft(Treap* newLeft) { left = newLeft; calcSize(); }
+	void setRight(Treap* newRight) { right = newRight; calcSize(); }
+	void calcSize() {
+		size = 1;
+		if (left) size += left->size;
+		if (right) size += right->size;
+	}
+
+
+
+
+	struct NodePair {
+		Treap *left, *right;
+	};
+	static NodePair split(Treap* root, int key) {
+		if (root == NULL) return{ NULL, NULL };
+
+		if (root->key < key) {
+			NodePair rs = split(root->right, key);
+			root->setRight(rs.left);
+			return{ root, rs.right };
+		}
+		else {
+			NodePair ls = split(root->left, key);
+			root->setLeft(ls.right);
+			return{ ls.left, root };
+		}
+	}
+	
+	static Treap* insert(Treap* root, Treap* newNode) {
+		if (root == NULL) return newNode;
+		if (root->priority < newNode->priority) {
+			NodePair rootSplitted = split(root, newNode->key);
+			newNode->setLeft(rootSplitted.left);
+			newNode->setRight(rootSplitted.right);
+			return newNode;
+		}
+		
+		if (root->key < newNode->key)
+			root->setRight(insert(root->right, newNode));
+		else
+			root->setLeft(insert(root->left, newNode));
+		return root;
+	}
+
+
+
+
+
+	static Treap* merge(Treap* left, Treap* right) {
+		if (left == NULL) return right;
+		if (right == NULL) return left;
+
+		if (left->priority < right->priority) {
+			right->setLeft(merge(left, right->left));
+			return right;
+		}
+		else {
+			left->setRight(merge(left->right, right));
+			return left;
+		}
+	}
+
+	static Treap* erase(Treap* root, int key) {
+		assert(root);
+		if (root->key == key) {
+			Treap* ret = merge(root->left, root->right);
+			delete root;
+			return ret;
+		}
+
+		if (root->key < key)
+			root->setRight(erase(root->right, key));
+		else
+			root->setLeft(erase(root->left, key));
+		return root;
+	}
+
+
+
+
+	static Treap* findKth(Treap* root, int k) {
+		assert(root);
+		assert(k <= root->size);
+
+		int leftSize = root->left ? root->left->size : 0;
+
+		if (k == leftSize+1) return root;
+
+		if (k <= leftSize) return findKth(root->left, k);
+		else return findKth(root->right, k-leftSize-1);
+	}
+
+
+
+};
+
+
+
+
+
+
+

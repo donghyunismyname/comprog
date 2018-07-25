@@ -1,0 +1,65 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+//#define NDEBUG
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <functional>
+
+#include <string>
+#include <vector>
+#include <queue>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
+#include <stack>
+#include <deque>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+
+#define GETINT(x) scanf("%d", &x)
+#define GETDBL(x) scanf("%lf", &x)
+#define GETSTR(x) scanf("%s", x)
+#define NEWINT(x) int x; scanf("%d", &x)
+#define NEWDBL(x) double x; scanf("%lf", &x)
+#define NEWLN putchar('\n')
+
+#ifdef _WIN32
+#define popcnt __popcnt
+#else
+#define popcnt __builtin_popcount
+#endif
+
+//typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+
+
+
+
+int main() {
+
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+
+
+	int cases; scanf("%d", &cases);
+	while (cases--) {
+		printf("hello\n");
+	}
+
+	return 0;
+}

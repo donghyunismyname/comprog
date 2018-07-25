@@ -1,0 +1,202 @@
+// https://www.acmicpc.net/problem/14577
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+struct Treap {
+	struct Node {
+		ll key;
+		int priority = rand();
+		ll size = 1;
+		Node *left = NULL, *right = NULL;
+		Node(ll givenKey) { key = givenKey; }
+
+		void setLeft(Node* newLeft) { left = newLeft; updateSize(); }
+		void setRight(Node* newRight) { right = newRight; updateSize(); }
+		void updateSize() {
+			size = 1;
+			if (left) size += left->size;
+			if (right) size += right->size;
+		}
+	};
+
+	static ll getSize(Node* node) {
+		return node ? node->size : 0;
+	}
+
+	static pair<Node*, Node*> split(Node* root, ll key) {
+		if (root == NULL) return pair<Node*, Node*>(NULL, NULL);
+
+		if (root->key < key) { // split right child
+			auto two = split(root->right, key);
+			root->setRight(two.first);
+			return pair<Node*, Node*>(root, two.second);
+		}
+		else {
+			auto two = split(root->left, key);
+			root->setLeft(two.second);
+			return pair<Node*, Node*>(two.first, root);
+		}
+	}
+
+	static Node* insert(Node* root, Node* newNode) {
+		if (root == NULL) return newNode;
+		if (root->priority < newNode->priority) {
+			auto two = split(root, newNode->key);
+			newNode->setLeft(two.first);
+			newNode->setRight(two.second);
+			return newNode;
+		}
+
+		if (root->key < newNode->key) root->setRight(insert(root->right, newNode));
+		else                          root->setLeft(insert(root->left, newNode));
+		return root;
+	}
+
+	static Node* merge(Node* left, Node* right) {
+		if (left == NULL) return right;
+		if (right == NULL) return left;
+
+		if (left->priority < right->priority) { // right should be the root
+			right->setLeft(merge(left, right->left));
+			return right;
+		}
+		else { // left should be the root
+			left->setRight(merge(left->right, right));
+			return left;
+		}
+	}
+
+	// Even if there are multiple nodes with the same key, erases at most one node
+	// Returns the new root
+	static Node* erase(Node* root, ll key) {
+		//if (root == NULL) return NULL;
+		if (root == NULL) assert(false);
+		if (root->key == key) {
+			Node* newRoot = merge(root->left, root->right);
+			delete root;
+			return newRoot;
+		}
+
+		if (key < root->key) root->setLeft(erase(root->left, key));
+		else                 root->setRight(erase(root->right, key));
+		return root;
+	}
+
+	// eraseKth(1) erases the first element
+	// Returns the new root
+	// Erases nothing if kth is not in [1, root->size]
+	static Node* eraseKth(Node* root, ll kth) {
+		if (root == NULL) return NULL;
+
+		const ll leftSize = getSize(root->left);
+		if (kth == leftSize + 1) {
+			Node* newRoot = merge(root->left, root->right);
+			delete root;
+			return newRoot;
+		}
+
+		if (kth <= leftSize) root->setLeft(eraseKth(root->left, kth));
+		else                 root->setRight(eraseKth(root->right, kth - leftSize - 1));
+		return root;
+	}
+
+	// Count the number of elements less than or equal to key
+	static ll countLessEqual(Node* root, ll key) {
+		if (root == NULL) return 0;
+
+		const ll leftSize = getSize(root->left);
+		if (key < root->key) return countLessEqual(root->left, key); 
+		else                 return leftSize + 1 + countLessEqual(root->right, key);
+	}
+
+	// findKth(1) returns the first elmement
+	static ll findKthKey(Node* root, ll kth) {
+		const ll leftSize = getSize(root->left);
+		if (kth == leftSize + 1)  return root->key;
+		else if (kth <= leftSize) return findKthKey(root->left, kth);
+		else                      return findKthKey(root->right, kth - leftSize - 1);
+	}
+
+
+	Node* root = NULL;
+	void insert(ll key) {
+		root = insert(root, new Node(key));
+	}
+	void erase(ll key) {
+		root = erase(root, key);
+	}
+	ll findKthKey(ll kth) {
+		assert(root);
+		assert(1 <= kth && kth <= root->size);
+		return findKthKey(root, kth);
+	}
+	ll countLessEqual(ll key) {
+		return countLessEqual(root, key);
+	}
+} tr;
+
+
+
+int N, M;
+ll S[100333];
+
+int main() {
+	//freopen("input.txt", "r", stdin);
+	scanf("%d%d", &N, &M);
+	for (int i = 1; i <= N; i++) scanf("%lld", &S[i]);
+	for (int i = 1; i <= N; i++) tr.insert(S[i]);
+
+	while (M--) {
+		int q; scanf("%d", &q);
+		if (q == 1) {
+			int i; ll x; scanf("%d %lld", &i, &x);
+			tr.erase(S[i]);
+			S[i] += x;
+			tr.insert(S[i]);
+		}
+		else if (q == 2) {
+			int i; ll x; scanf("%d %lld", &i, &x);
+			tr.erase(S[i]);
+			S[i] -= x;
+			tr.insert(S[i]);
+		}
+		else if (q == 3) {
+			ll L, R; scanf("%lld %lld", &L, &R);
+			int ans = tr.countLessEqual(R) - tr.countLessEqual(L - 1);
+			printf("%d\n", ans);
+		}
+		else if (q == 4) {
+			int T; scanf("%d", &T);
+			int kth = N + 1 - T;
+			ll ans = tr.findKthKey(kth);
+			printf("%lld\n", ans);
+		}
+		else assert(false);
+	}
+
+
+
+
+
+
+	return 0;
+}

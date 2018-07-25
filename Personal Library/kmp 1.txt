@@ -1,0 +1,19 @@
+const int PATTERNLEN = 1000;
+void kmp(vector<int> &result, const char* pattern, const int pLen, const char* text, const int tLen) {
+	static int f[PATTERNLEN+1];
+	f[1] = 0;
+	for (int i=1, l=0; i<pLen; ) {
+		if (pattern[i] == pattern[l]) f[++i] = ++l;
+		else if (l > 0) l = f[l];
+		else f[++i] = 0;
+	}
+
+	for (int i=0, l=0; i-l+pLen<=tLen; ) {
+		if (l<pLen && text[i] == pattern[l]) {
+			i++; l++;
+			if (l == pLen) result.push_back(i-pLen);
+		}
+		else if (l > 0) l = f[l];
+		else i++;
+	}
+}

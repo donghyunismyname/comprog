@@ -1,0 +1,163 @@
+// https://algospot.com/judge/problem/stat/FINALEXAM/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+typedef long long ll;
+//const ll MOD = 1000000007;
+//const double PI = atan(1) * 4;
+
+
+
+
+
+struct SuffixArray {
+	static const int SZ = 10333; // It must be that 128 <= SZ
+	int N;
+	char str[SZ];
+
+	int suff[SZ];
+	int rank[SZ];
+
+	void radixBucketSort(int t, int R) {
+		static vector<int> bucket[SZ];
+
+		for (int r = 0; r <= R; r++) bucket[r].clear();
+		for (int k = 0; k <= N; k++) {
+			int s = suff[k];
+			int r = s + t < N ? rank[s + t] : 0;
+			bucket[r].push_back(s);
+		}
+		for (int k = 0, r = 0; r <= R; r++) 
+			for (int s : bucket[r]) 
+				suff[k++] = s;
+
+		for (int r = 0; r <= R; r++) bucket[r].clear();
+		for (int k = 0; k <= N; k++) {
+			int s = suff[k];
+			bucket[rank[s]].push_back(s);
+		}
+		for (int k = 0, r = 0; r <= R; r++)
+			for (int s : bucket[r])
+				suff[k++] = s;
+	}
+
+	void radixSort(int t, int R) {
+		static int cnt[SZ], tmp[SZ];
+
+		for (int r = 0; r <= R; r++) cnt[r] = 0;
+		for (int k = 0; k <= N; k++) {
+			int s = suff[k];
+			int r = s + t < N ? rank[s + t] : 0;
+			cnt[r]++;
+		}
+		for (int r = 1; r <= R; r++) cnt[r] += cnt[r - 1];
+		for (int k = N; k >= 0; k--) {
+			int s = suff[k];
+			int r = s + t < N ? rank[s + t] : 0;
+			tmp[--cnt[r]] = s;
+		}
+
+		for (int r = 0; r <= R; r++) cnt[r] = 0;
+		for (int k = 0; k <= N; k++) {
+			int s = tmp[k];
+			int r = rank[s];
+			cnt[r]++;
+		}
+		for (int r = 1; r <= R; r++) cnt[r] += cnt[r - 1];
+		for (int k = N; k >= 0; k--) {
+			int s = tmp[k];
+			int r = rank[s];
+			suff[--cnt[r]] = s;
+		}
+	}
+
+	int rerank(int t) {
+		static int newRank[SZ];
+		newRank[suff[0]] = 0;
+		for (int k = 1; k <= N; k++) {
+			int s = suff[k - 1];
+			int ss = suff[k];
+			int inc = (rank[s] < rank[ss]) || (rank[s] == rank[ss] && rank[s + t] < rank[ss + t]); // No need to check array boundary
+			newRank[ss] = newRank[s] + inc;
+		}
+
+		for (int s = 0; s <= N; s++) rank[s] = newRank[s];
+		return rank[suff[N]];
+	}
+
+	void build() {
+		if (N == 0) {
+			suff[0] = 0;
+			rank[0] = 0;
+			return;
+		}
+		if (N == 1) {
+			suff[0] = 1; suff[1] = 0;
+			rank[0] = 1; rank[1] = 0;
+			return;
+		}
+
+
+		for (int k = 0; k <= N; k++) suff[k] = k;
+		for (int s = 0; s <= N; s++) rank[s] = str[s];
+		int t = 1;
+		int R = 127;
+
+		while (t < N) {
+			radixSort(t, R);
+			R = rerank(t);
+			t *= 2;
+		}
+	}
+} sa;
+
+
+
+char str[5003];
+
+int main() {
+	int tc; scanf("%d", &tc);
+	while (tc--) {
+		int K; scanf("%d", &K);
+		scanf("%s", str);
+
+		sa.N = 2 * K;
+		string ans; ans.push_back(127);
+
+		for (int start = 0; str[start + K - 1]; start++) {
+			strncpy(sa.str, str + start, K);
+			strncpy(sa.str + K, str + start, K);
+
+			sa.build();
+			int k = 0;
+			while (K <= sa.suff[k]) k++;
+			string s(sa.str + sa.suff[k], K);
+
+			reverse(sa.str, sa.str + 2 * K);
+
+			sa.build();
+			k = 0;
+			while (K <= sa.suff[k]) k++;
+			string ss(sa.str + sa.suff[k], K);
+
+			ans = min({ ans, s, ss });
+		}
+
+		cout << ans << endl;
+	}
+
+
+	return 0;
+}

@@ -1,0 +1,10 @@
+// Reads nonnegative integers
+inline int getint() {
+	int ret = 0, ch;
+	for (ch = getchar(); ch < '0' || ch > '9'; ch = getchar());
+	for (ret = ch - '0', ch = getchar(); ch >= '0' && ch <= '9'; ch = getchar()) {
+		ret = ret * 10 + ch - '0';
+	}
+
+	return ret;
+}

@@ -1,0 +1,121 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+//#define NDEBUG
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for(int i=0; i<(E); i++)
+#define REP(i, LO, HI) for(int i=(LO); i<=(HI); i++)
+
+typedef long long ll;
+
+//const ll MOD = 1000000007;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct Point {
+	int x, y;
+};
+struct Seg {
+	Point p, q;
+};
+
+int ccw(Point a, Point b, Point c) {
+	int cross = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+	if (cross > 0) return 1;
+	else if (cross == 0) return 0;
+	else return -1;
+}
+
+
+int countIntersections(Seg l1, Seg l2) {
+	bool sameLine = ccw(l1.p, l1.q, l2.p) == 0 && ccw(l1.p, l1.q, l2.q) == 0;
+	if (sameLine) {
+		int l1p, l1q, l2p, l2q;
+		if (l1.p.x == l1.q.x) {
+			l1p = l1.p.y;
+			l1q = l1.q.y;
+			l2p = l2.p.y;
+			l2q = l2.q.y;
+		}
+		else {
+			l1p = l1.p.x;
+			l1q = l1.q.x;
+			l2p = l2.p.x;
+			l2q = l2.q.x;
+		}
+
+		if (l1p > l1q) swap(l1p, l1q);
+		if (l2p > l2q) swap(l2p, l2q);
+		int lo = max(l1p, l2p);
+		int hi = min(l1q, l2q);
+
+		if (lo < hi) return 1234;
+		else if (lo == hi) return 1;
+		else return 0;
+	}
+
+	if (ccw(l1.p, l1.q, l2.p) == ccw(l1.p, l1.q, l2.q)) return 0;
+	if (ccw(l2.p, l2.q, l1.p) == ccw(l2.p, l2.q, l1.q)) return 0;
+	return 1;
+}
+
+
+
+
+
+
+int main() {
+	int tc; cin >> tc;
+	while (tc--) {
+		Point rec[4];
+		cin >> rec[0].x >> rec[0].y >> rec[2].x >> rec[2].y;
+		rec[1].x = rec[2].x; rec[1].y = rec[0].y;
+		rec[3].x = rec[0].x; rec[3].y = rec[2].y;
+
+		Seg s;
+		cin >> s.p.x >> s.p.y >> s.q.x >> s.q.y;
+		
+
+		int ans = 0;
+		FOR(i, 4) {
+			ans += countIntersections(s, { rec[i], rec[(i+1)%4] });
+			ans -= countIntersections(s, { rec[i], rec[i] });
+		}
+
+		cout << min(ans, 4) << endl;
+	}
+
+
+
+
+
+
+
+
+	return 0;
+}

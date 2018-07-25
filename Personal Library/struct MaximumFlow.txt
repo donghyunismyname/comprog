@@ -1,0 +1,123 @@
+#define _CRT_SECURE_NO_WARNINGS // scanf(), gets() (needed for Visual C++)
+
+#include <cassert>
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+#define MEMSET(x, WITH) memset(x, (WITH), sizeof(x))
+#define FOR(i, E) for (int i=0; i<(E); i++)
+
+typedef long long ll;
+const ll MOD = 1000000009;
+//const double PI = atan(1) * 4;
+
+
+
+
+struct MaximumFlow {
+	static const int NUM_OF_VERTICES = 25003;
+
+	struct Edge {
+		int to, capacity, flow;
+		Edge* reverse;
+		int residue() const { return capacity - flow; }
+		void push(int amt) {
+			flow += amt;
+			reverse->flow -= amt;
+		}
+	};
+
+	vector<Edge*> graph[NUM_OF_VERTICES];
+	void addEdge(int u, int v, int capacity) {
+		Edge* uv = new Edge;
+		Edge* vu = new Edge;
+
+		uv->to = v;
+		uv->capacity = capacity;
+		uv->flow = 0;
+		uv->reverse = vu;
+
+		vu->to = u;
+		vu->capacity = 0;
+		vu->flow = 0;
+		vu->reverse = uv;
+
+		graph[u].push_back(uv);
+		graph[v].push_back(vu);
+	}
+	void clearFlow() {
+		for (int u=0; u<NUM_OF_VERTICES; u++)
+			for (Edge *e : graph[u])
+				e->flow = 0;
+	}
+
+
+
+	bool visited[NUM_OF_VERTICES];
+	int dfs(int here, int snk, int amt) {
+		if (visited[here]) return 0;
+		visited[here] = true;
+		if (here == snk) return amt;
+
+		for (Edge* e : graph[here]) if (e->residue() > 0) {
+			int ret = dfs(e->to, snk, min(e->residue(), amt));
+			if (ret > 0) {
+				e->push(ret);
+				return ret;
+			}
+		}
+
+		return 0;
+	}
+
+	int solveDFS(int src, int snk) {
+		int totalFlow = 0;
+
+		while (true) {
+			memset(visited, false, sizeof(visited));
+			int df = dfs(src, snk, 987654321);
+			if (df == 0) return totalFlow;
+			totalFlow += df;
+		}
+
+		return totalFlow;
+	}
+
+
+	void clear() {
+		for (int u=0; u<NUM_OF_VERTICES; u++) {
+			for (Edge* e : graph[u])
+				delete e;
+			graph[u].clear();
+		}
+	}
+};
+
+
+int N, K;
+int a[203], f[203], p[203];
+
+
+
+int main() {
+	setbuf(stdout, NULL);
+	int TC; scanf("%d", &TC);
+	for (int tc=1; tc<=TC; tc++) {
+		scanf("%d%d", &N, &K);
+
+
+
+	}
+
+
+
+}

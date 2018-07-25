@@ -1,0 +1,5 @@
+#ifdef _WIN32
+#define popcnt __popcnt
+#else
+#define popcnt __builtin_popcount
+#endif

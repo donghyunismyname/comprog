@@ -1,0 +1,297 @@
+struct Vector2 {
+	double x, y;
+	void println() const {
+		cout << "(" << x << ", " << y << ")" << endl;
+	}
+	Vector2(double xx, double yy) : x(xx), y(yy) {}
+	Vector2() {}
+
+	bool operator==(Vector2 rhs) const {
+		return x==rhs.x && y==rhs.y;
+	}
+	bool operator!=(Vector2 rhs) const {
+		return !(*this == rhs);
+	}
+	bool operator<(Vector2 rhs) const {
+		return x != rhs.x ? x < rhs.x : y < rhs.y;
+	}
+	Vector2 operator+(Vector2 rhs) const {
+		return{ x+rhs.x, y+rhs.y };
+	}
+	Vector2 operator-(Vector2 rhs) const {
+		return{ x-rhs.x, y-rhs.y };
+	}
+	Vector2 operator-() const {
+		return Vector2(-x, -y);
+	}
+	Vector2 operator*(double c) const {
+		return{ c*x, c*y };
+	}
+	double norm() const {
+		return hypot(x, y);
+	}
+	Vector2 normalize() const {
+		return{ x/norm(), y/norm() };
+	}
+	double dot(Vector2 rhs) const {
+		return x*rhs.x + y*rhs.y;
+	}
+	double cross(Vector2 rhs) const {
+		return x * rhs.y - rhs.x * y;
+	}
+
+
+
+	static double ccw(Vector2 a, Vector2 b, Vector2 c) {
+		return (b-a).cross(c-a); // Returns positive iff counter clock wise
+	}
+	static bool lineIntersection(Vector2 p1, Vector2 p2,
+		Vector2 q1, Vector2 q2, Vector2 &result) {
+
+		double det = (p2 - p1).cross(q2 - q1);
+		if (abs(det) < 1e-200) return false;
+
+		double coef = (q1 - p1).cross(q2 - q1) / det;
+		result = p1 + (p2 - p1) * coef;
+		return true;
+	}
+	static Vector2 perpendicularFoot(Vector2 p, Vector2 a, Vector2 b) {
+		return a + (p-a).project(b-a);
+	}
+	static bool segmentIntersects(Vector2 a, Vector2 b, Vector2 c, Vector2 d) {
+		double ab = ccw(a, b, c) * ccw(a, b, d);
+		double cd = ccw(c, d, a) * ccw(c, d, b);
+
+		// 두 선분이 한 직선 위에 있거나 끝점이 겹치는 경우
+		if (ab == 0 && cd == 0) {
+			if (b < a) swap(a, b);
+			if (d < c) swap(c, d);
+			return !(b < c || d < a);
+		}
+
+		return ab <= 0 && cd <= 0;
+	}
+
+
+
+	Vector2 project(Vector2 onto) const {
+		return onto * (onto.dot(*this) / onto.dot(onto));
+	}
+	Vector2 reflect(Vector2 normal) const {
+		return (*this) + ((*this).project(normal) - (*this))*2;
+	}
+	double polar() const {
+		return fmod(atan2(y, x) + atan(1)*4, atan(1)*8);
+	}
+
+
+
+	double dist(Vector2 rhs) const {
+		return hypot(x-rhs.x, y-rhs.y);
+	}
+	double distToStraightLine(double a, double b, double c) const {
+		return abs(a*x + b*y + c)/hypot(a, b);
+	}
+	double distToStraightLine(Vector2 p1, Vector2 p2) const {
+		double dx = p2.x - p1.x;
+		double dy = p2.y - p1.y;
+		double a = dy;
+		double b = -dx;
+		double c = -p2.x*dy + p2.y*dx;
+		return distToStraightLine(a, b, c);
+	}
+	double distToSegment(Vector2 a, Vector2 b) const {
+		/*
+		Vector2 p = perpendicularFoot(*this, a, b);
+		bool pInSegment = max(p.dist(a), p.dist(b)) <= a.dist(b);
+
+		if (pInSegment) return this->dist(p);
+		else return min(this->dist(a), this->dist(b));
+		*/
+
+
+		// Faster implementation
+		double ab = a.dist(b);
+		double pq = this->distToStraightLine(a, b);
+		double pa = this->dist(a);
+		double pb = this->dist(b);
+
+		double qa = sqrt(pa*pa - pq*pq);
+		double qb = sqrt(pb*pb - pq*pq);
+
+		if (max(qa, qb) <= ab) return pq;
+		else return min(pa, pb);
+	}
+
+
+
+
+
+
+
+	static vector<Vector2> cutPoly(const vector<Vector2> &poly, Vector2 a, Vector2 b) {
+		vector<bool> inside(poly.size());
+		for (int i=0; i<(int)poly.size(); i++)
+			inside[i] = Vector2::ccw(a, b, poly[i]) >= 0;
+
+		vector<Vector2> ret;
+		for (int i=0; i<(int)poly.size(); i++) {
+			int j = (i+1) % poly.size();
+
+			if (inside[i]) ret.push_back(poly[i]);
+			if (inside[i] != inside[j]) {
+				Vector2 mid;
+				Vector2::lineIntersection(a, b, poly[i], poly[j], mid);
+				ret.push_back(mid);
+			}
+		}
+
+		return ret;
+	}
+
+	static double calcArea(const vector<Vector2> &poly) {
+		double ret = 0;
+		for (int i=0; i<(int)poly.size(); i++) {
+			int j = (i+1) % poly.size();
+			ret += poly[i].cross(poly[j]);
+		}
+		return abs(ret) / 2.0;
+	}
+
+
+
+	static bool isInside(Vector2 q, const vector<Vector2> &p) {
+		int crosses = 0;
+		for (int i=0; i<(int)p.size(); i++) {
+			int j = (i + 1) % p.size();
+
+			if ((p[i].y > q.y) != (p[j].y > q.y)) {
+				Vector2 delta = p[j] - p[i];
+				double dx = (q.y - p[i].y) * (delta.x / delta.y);
+				double midx = p[i].x + dx;
+				crosses += q.x < midx;
+			}
+		}
+
+		return crosses%2 == 1;
+	}
+
+	// Polygon vertices should be stored in CCW or CW order
+	static bool polygonIntersects(const vector<Vector2> &p, const vector<Vector2> &q) {
+		if (isInside(p[0], q) || isInside(q[0], p)) return true;
+
+		for (int i=0; i<(int)p.size(); i++) for (int j=0; j<(int)q.size(); j++) {
+			int ii = (i+1) % p.size();
+			int jj = (j+1) % q.size();
+			if (Vector2::segmentIntersects(p[i], p[ii], q[j], q[jj]))
+				return true;
+		}
+		return false;
+	}
+
+
+
+	// Returns the convex hull of points, stored in CCW order
+	static vector<Vector2> giftWrap(const vector<Vector2> &points) {
+		vector<Vector2> hull;
+		hull.push_back(*min_element(points.begin(), points.end()));
+
+		while (true) {
+			Vector2 pivot = hull.back();
+			Vector2 tgt = points[0];
+
+			for (Vector2 p : points) {
+				double cross = Vector2::ccw(pivot, p, tgt);
+				double dist = (tgt - pivot).norm();
+				double distNew = (p - pivot).norm();
+				if (cross > 0 || cross == 0 && dist < distNew)
+					tgt = p;
+			}
+
+			if (tgt == hull.front()) break;
+			hull.push_back(tgt);
+		}
+
+		return hull;
+	}
+
+
+	// Returns the convex hull of points, stored in CCW order
+	// All interior angles are strictly less than 180
+	static vector<Vector2> grahamScan(const vector<Vector2> &points) {
+		Vector2 pivot = *min_element(points.begin(), points.end());
+		vector<Vector2> pointsSorted;
+		for (Vector2 p : points) if (p != pivot) pointsSorted.push_back(p);
+		sort(pointsSorted.begin(), pointsSorted.end(), [pivot](Vector2 a, Vector2 b) {
+			double c = ccw(pivot, a, b);
+			if (c != 0) return 0 < c;
+			else return (a-pivot).norm() < (b-pivot).norm();
+		});
+
+		vector<Vector2> hull(1, pivot);
+		for (Vector2 p : pointsSorted) {
+			while (hull.size() >= 2 && ccw(hull[hull.size()-2], hull[hull.size()-1], p) <= 0) hull.pop_back();
+			hull.push_back(p);
+		}
+		return hull;;
+	}
+
+	static void convexHullTrick(const vector<Vector2> &points, vector<Vector2> &up, vector<Vector2> &dw) {
+		vector<Vector2> pointsSorted(points);
+		sort(pointsSorted.begin(), pointsSorted.end());
+
+		for (Vector2 p : pointsSorted) {
+			while (up.size()>=2 && ccw(up[up.size()-2], up[up.size()-1], p) >= 0) up.pop_back();
+			up.push_back(p);
+			while (dw.size()>=2 && ccw(dw[dw.size()-2], dw[dw.size()-1], p) <= 0) dw.pop_back();
+			dw.push_back(p);
+		}
+	}
+
+	// hull should be a convex hull, stored in CCW order
+	static double diameter(const vector<Vector2> &hull) {
+		int N = hull.size(); if (N == 1) return 0;
+
+		int a = 0, b = 1;
+		double ret = hull[a].dist(hull[b]);
+		for (int zz=0; zz<N*2; zz++) {
+			double c = (hull[(a+1)%N] - hull[a]).cross(hull[(b+1)%N] - hull[b]);
+			if (0 <= c) b = (b+1) % N;
+			else a = (a+1) % N;
+			ret = max(ret, hull[a].dist(hull[b]));
+		}
+		return ret;
+	}
+
+	/* JMBOOK code
+	// hull should be a convex hull, stored in CCW order
+	static double diameter(const vector<Vector2> &hull) {
+		int N = hull.size(); if (N == 1) return 0;
+		int left = min_element(hull.begin(), hull.end()) - hull.begin();
+		int right = max_element(hull.begin(), hull.end()) - hull.begin();
+
+		vector<Vector2> toNext(N);
+		for (int i=0; i<N; i++) toNext[i] = (hull[(i+1)%N] - hull[i]).normalize();
+
+		int a = left, b = right;
+		Vector2 calipersA(0, 1);
+		double ret = hull[a].dist(hull[b]);
+		while (!(a==right && b==left)) {
+			double cosThetaA = calipersA.dot(toNext[a]);
+			double cosThetaB = -calipersA.dot(toNext[b]);
+
+			if (cosThetaA > cosThetaB) {
+				calipersA = toNext[a];
+				a = (a+1) % N;
+			}
+			else {
+				calipersA = -toNext[b];
+				b = (b+1) % N;
+			}
+			ret = max(ret, hull[a].dist(hull[b]));
+		}
+
+		return ret;
+	}
+	*/
+};

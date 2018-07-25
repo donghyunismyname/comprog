@@ -1,0 +1,16 @@
+
+	const int SZ = 1003;
+	char S[SZ];
+	int A[SZ];
+
+	for (int i=1; i<N; i++) {
+		A[i] = p+A[p]<i ? 0 : min(p+A[p]-i, A[2*p-i]);
+		
+		int lo = i - (A[i]+1);
+		int hi = i + (A[i]+1);
+		while (0<=lo && hi<N && S[lo]==S[hi])
+			A[i]++, lo--, hi++;
+		
+		if (p+A[p] < i+A[i]) p = i;
+	}
+	

@@ -1,0 +1,41 @@
+
+vector<int> makeSuffixArray(const string &str) {
+	struct Comp {
+		int t;
+		const vector<int>& group;
+		Comp(int _t, vector<int>& _g) : t(_t), group(_g) {}
+
+		bool operator()(int i, int j) {
+			if (group[i] != group[j]) return group[i] < group[j];
+			return group[i+t] < group[j+t];
+		}
+	};
+
+
+	vector<int> group;
+	for (char c : str) group.push_back(c);
+	group.push_back(-123);
+
+	vector<int> perm;
+	for (int i=0; i<(int)str.size(); i++) perm.push_back(i);
+
+	int t = 1;
+	while (true) {
+		Comp comp(t, group);
+		sort(perm.begin(), perm.end(), comp);
+		t *= 2;
+		if ((int)str.size() <= t) {
+			//for (int i : perm) cout << &str[i] << endl;
+			return perm;
+		}
+
+
+		vector<int> newGroup(str.size() + 1);
+		newGroup[perm[0]] = 0;
+		for (int i=1; i<(int)str.size(); i++)
+			newGroup[perm[i]] = newGroup[perm[i-1]] + comp(perm[i-1], perm[i]);
+		newGroup[str.size()] = -123;
+
+		group.swap(newGroup);
+	}
+}

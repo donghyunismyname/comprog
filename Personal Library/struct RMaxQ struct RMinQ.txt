@@ -1,0 +1,125 @@
+struct RMaxQ {
+	static const int INF = 987654321;
+	int size;
+	vector<int> tree;
+
+
+	RMaxQ(int sz) : size(sz), tree(sz*4) {}
+	RMaxQ(const vector<int> &data) : size(data.size()), tree(data.size()*4) {
+		init(data, 1, 0, size-1);
+	}
+	void init(const vector<int> &data, int node, int nodeLo, int nodeHi) {
+		if (nodeLo == nodeHi) {
+			tree[node] = data[nodeLo];
+			return;
+		}
+
+		int mid = (nodeLo + nodeHi)/2;
+		init(data, 2*node, nodeLo, mid);
+		init(data, 2*node+1, mid+1, nodeHi);
+		tree[node] = max(tree[2*node], tree[2*node+1]);
+	}
+
+
+
+	int targetIdx;
+	int newVal;
+	void update(int idx, int val) {
+		targetIdx = idx;
+		newVal = val;
+		update(1, 0, size-1);
+	}
+	void update(int node, int nodeLo, int nodeHi) {
+		if (targetIdx < nodeLo || nodeHi < targetIdx) return;
+		if (nodeLo == nodeHi) {
+			tree[node] = newVal;
+			return;
+		}
+
+		int mid = (nodeLo + nodeHi)/2;
+		update(2*node, nodeLo, mid);
+		update(2*node+1, mid+1, nodeHi);
+		tree[node] = max(tree[2*node], tree[2*node+1]);
+	}
+
+
+	int rangeLo, rangeHi;
+	int query(int lo, int hi) {
+		rangeLo = lo;
+		rangeHi = hi;
+		return query(1, 0, size-1);
+	}
+	int query(int node, int nodeLo, int nodeHi) const {
+		if (rangeHi < nodeLo || nodeHi < rangeLo) return -INF;
+		if (rangeLo <= nodeLo && nodeHi <= rangeHi) return tree[node];
+
+		int mid = (nodeLo + nodeHi)/2;
+		int leftQuery = query(2*node, nodeLo, mid);
+		int rightQuery = query(2*node+1, mid+1, nodeHi);
+		return max(leftQuery, rightQuery);
+	}
+};
+
+
+
+struct RMinQ {
+	static const int INF = 987654321;
+	int size;
+	vector<int> tree;
+
+
+	RMinQ(int sz) : size(sz), tree(sz*4) {}
+	RMinQ(const vector<int> &data) : size(data.size()), tree(data.size()*4) {
+		init(data, 1, 0, size-1);
+	}
+	void init(const vector<int> &data, int node, int nodeLo, int nodeHi) {
+		if (nodeLo == nodeHi) {
+			tree[node] = data[nodeLo];
+			return;
+		}
+
+		int mid = (nodeLo + nodeHi)/2;
+		init(data, 2*node, nodeLo, mid);
+		init(data, 2*node+1, mid+1, nodeHi);
+		tree[node] = min(tree[2*node], tree[2*node+1]);
+	}
+
+
+
+	int targetIdx;
+	int newVal;
+	void update(int idx, int val) {
+		targetIdx = idx;
+		newVal = val;
+		update(1, 0, size-1);
+	}
+	void update(int node, int nodeLo, int nodeHi) {
+		if (targetIdx < nodeLo || nodeHi < targetIdx) return;
+		if (nodeLo == nodeHi) {
+			tree[node] = newVal;
+			return;
+		}
+
+		int mid = (nodeLo + nodeHi)/2;
+		update(2*node, nodeLo, mid);
+		update(2*node+1, mid+1, nodeHi);
+		tree[node] = min(tree[2*node], tree[2*node+1]);
+	}
+
+
+	int rangeLo, rangeHi;
+	int query(int lo, int hi) {
+		rangeLo = lo;
+		rangeHi = hi;
+		return query(1, 0, size-1);
+	}
+	int query(int node, int nodeLo, int nodeHi) const {
+		if (rangeHi < nodeLo || nodeHi < rangeLo) return INF;
+		if (rangeLo <= nodeLo && nodeHi <= rangeHi) return tree[node];
+
+		int mid = (nodeLo + nodeHi)/2;
+		int leftQuery = query(2*node, nodeLo, mid);
+		int rightQuery = query(2*node+1, mid+1, nodeHi);
+		return min(leftQuery, rightQuery);
+	}
+};
