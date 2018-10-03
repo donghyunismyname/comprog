@@ -1,3 +1,73 @@
+typedef long long ll;
+
+struct Node {
+	static const int LAST = 100333;
+	ll val = 0;
+	Node *l = NULL, *r = NULL;
+
+	static Node* create(int lo=1, int hi=LAST) {
+		Node *ret = new Node();
+		if (lo == hi) return ret;
+
+		int mi = (lo + hi) / 2;
+		ret->l = create(lo, mi);
+		ret->r = create(mi+1, hi);
+		return ret;
+	}
+	Node* update(int idx, ll val, int lo=1, int hi=LAST) {
+		if (idx < lo || hi < idx) return this;
+		Node *ret = new Node();
+		if (lo == hi) {
+			ret->val = val + this->val;
+			return ret;
+		}
+
+		int mi = (lo + hi) / 2;
+		ret->l = l->update(idx, val, lo, mi);
+		ret->r = r->update(idx, val, mi+1, hi);
+		ret->val = ret->l->val + ret->r->val;
+		return ret;
+	}
+	ll query(int qlo, int qhi, int lo=1, int hi=LAST) {
+		if (qhi < lo || hi < qlo) return 0;
+		if (qlo <= lo && hi <= qhi) return this->val;
+
+		int mi = (lo + hi) / 2;
+		return this->l->query(qlo, qhi, lo, mi) + this->r->query(qlo, qhi, mi+1, hi);
+	}
+
+
+	// Works under the assumption that all stored elements are nonnegative
+	// kthIndex(0) returns 1
+	// kthIndex(1) returns the leftmost positive index
+	// kthIndex(val) returns the rightmost positive index
+	// kthIndex(val+1) returns LAST+1
+	int kthIndex(ll S, int lo=1, int hi=LAST) {
+		if (val < S) return LAST+1;
+		if (lo == hi) return lo;
+
+		int mi = (lo + hi) / 2;
+		if (S <= l->val)
+			return l->kthIndex(S, lo, mi);
+		else
+			return r->kthIndex(S-(l->val), mi+1, hi);
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // http://codeforces.com/contest/787/problem/E
 
 #define _CRT_SECURE_NO_WARNINGS
