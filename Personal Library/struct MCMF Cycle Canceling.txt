@@ -1,0 +1,120 @@
+#include <queue>
+struct MCMF {
+	// Cycle Canceling
+
+	static const int ARRAYSIZE = 66;
+	struct Edge {
+		int tail, head, capacity, cost, flow;
+		Edge* reverse;
+		int residue() const { return capacity - flow; }
+		void push(int amt) {
+			flow += amt;
+			reverse->flow -= amt;
+		}
+	};
+
+	vector<Edge*> adj[ARRAYSIZE];
+	vector<Edge*> allEdges;
+	void clear() {
+		for (Edge* e: allEdges) delete e;
+		for (int i=0; i<ARRAYSIZE; i++) adj[i].clear();
+	}
+	~MCMF() {
+		clear();
+	}
+	void resetFlow() {
+		for (Edge* e: allEdges) e->flow = 0;
+	}
+
+
+	void addEdge(int tail, int head, int capacity, int cost) {
+		Edge* uv = new Edge; adj[tail].push_back(uv); allEdges.push_back(uv);
+		Edge* vu = new Edge; adj[head].push_back(vu); allEdges.push_back(vu);
+
+		uv->tail = tail;
+		uv->head = head;
+		uv->capacity = capacity;
+		uv->cost = cost;
+		uv->flow = 0;
+		uv->reverse = vu;
+
+		vu->tail = head;
+		vu->head = tail;
+		vu->capacity = 0;
+		vu->cost = -cost;
+		vu->flow = 0;
+		vu->reverse = uv;
+	}
+
+
+
+	int totalFlow = 0;
+	int totalCost = 0;
+	bool vis[ARRAYSIZE];
+	int dfs(int here, int snk, int amt) {
+		if (vis[here]) return 0;
+		vis[here] = true;
+
+		if (here == snk) return amt;
+		for (Edge* e: adj[here]) if (e->residue()) {
+			if (int success = dfs(e->head, snk, min(amt, e->residue()))) {
+				e->push(success);
+				totalCost += e->cost * success;
+				return success;
+			}
+		}
+		return 0;
+	}
+	bool runFlow(int src, int snk) {
+		memset(vis, 0, sizeof(vis));
+		int amount = dfs(src, snk, 987654321);
+		totalFlow += amount;
+		return amount > 0;
+	}
+	void makeFullFlow(int src, int snk) {
+		totalCost = totalFlow =  0;
+		while (runFlow(src, snk));
+	}
+
+
+	// Returns false if there is no negative cycle
+	bool cancelCycle() {
+		static int dist[ARRAYSIZE];
+		static Edge* link[ARRAYSIZE];
+		static const int INF = 987654321;
+
+		// Perform Bellman-Ford
+		for (int v=0; v<ARRAYSIZE; v++) dist[v] = 0;
+
+		int loopCnt = 0;
+		int cycleNode = -1;
+		for (; loopCnt < ARRAYSIZE; loopCnt++) {
+			bool changed = false;
+			for (Edge* e: allEdges) if (e->residue()) {
+				if (dist[e->head] > dist[e->tail] + e->cost) {
+					dist[e->head] = dist[e->tail] + e->cost;
+					link[e->head] = e;
+					changed = true;
+					cycleNode = e->head;
+				}
+			}
+			if (!changed) break;
+		}
+		if (loopCnt != ARRAYSIZE) return false; // No negative cycle
+		assert(cycleNode != -1);
+
+
+		// Find the node contained in the cycle
+		for (int i=0; i<ARRAYSIZE; i++) cycleNode = link[cycleNode]->tail;
+
+		vector<Edge*> cycle;
+		cycle.push_back(link[cycleNode]);
+		for (int v=link[cycleNode]->tail; v!=cycleNode; v=link[v]->tail) cycle.push_back(link[v]);
+
+		int amount = INF;
+		for (Edge* e: cycle) amount = min(amount, e->residue());
+		for (Edge* e: cycle) e->push(amount);
+		for (Edge* e: cycle) totalCost += e->cost * amount;
+		return true;
+	}
+};
